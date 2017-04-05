@@ -60,6 +60,7 @@ namespace FdxLeadAssignmentPlugin
                 OptionMetadata[] optionList = retrievedOptionSetMetadata.Options.ToArray();
                 foreach (OptionMetadata optionMetadata in optionList)
                 {
+                    //If the value matches/....
                     if (optionMetadata.Label.UserLocalizedLabel.Label.ToString() == _optionsetSelectedText)
                     {
                         optionsetValue = (int)optionMetadata.Value;
