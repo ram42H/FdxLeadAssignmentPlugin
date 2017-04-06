@@ -5,6 +5,8 @@ using Microsoft.Xrm.Sdk.Workflow;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Runtime.Serialization.Json;
 using System.ServiceModel;
 using System.Text;
 using System.Threading.Tasks;
@@ -72,6 +74,7 @@ namespace FdxLeadAssignmentPlugin
                     //Set created on time based on Leads time zone....
                     step = 1;
                     Entity zipEntity = service.Retrieve("fdx_zipcode", zip, new ColumnSet("fdx_zipcode", "fdx_timezone"));
+                    string zipCode = zipEntity.Attributes["fdx_zipcode"].ToString();
                     if (zipEntity.Attributes.Contains("fdx_timezone"))
                     {
                         int timeZoneCode = Convert.ToInt32(zipEntity["fdx_timezone"]);
@@ -371,7 +374,37 @@ namespace FdxLeadAssignmentPlugin
                     #endregion
 
                     #region Set the address field as per the account if there is an existing account....
-                    
+                    step = 4;
+                    const string token = "8b6asd7-0775-4278-9bcb-c0d48f800112";
+                    string url = "http://SMARTCRMSync.1800dentist.com/api/lead/createleadasync?Zip={0}";
+                    var uri = new Uri(string.Format(url,zipCode));
+                    var request = WebRequest.Create(uri);
+                    request.Method = WebRequestMethods.Http.Post;
+                    request.ContentType = "application/json";
+                    request.ContentLength = 0;
+                    request.Headers.Add("Authorization", token);
+                    step = 5;
+                    using (var getResponse = request.GetResponse())
+                    {
+                        DataContractJsonSerializer serializer =
+                                    new DataContractJsonSerializer(typeof(Lead));
+
+                        step = 6;
+                        Lead leadObj = (Lead)serializer.ReadObject(getResponse.GetResponseStream());
+                        step = 7;
+                        leadEntity["fdx_goldmineaccountnumber"] = leadObj.goldMineId;
+                        if(leadObj.goNoGo)
+                        {
+                            step = 71;
+                            leadEntity["fdx_gonogo"] = new OptionSetValue(756480000);
+                        }
+                        else
+                        {
+                            step = 72;
+                            leadEntity["fdx_gonogo"] = new OptionSetValue(756480001);
+                            leadEntity["fdx_snb"] = false;
+                        }
+                    }
                     #endregion
                 }
                 catch (FaultException<OrganizationServiceFault> ex)

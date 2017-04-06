@@ -75,6 +75,7 @@
     <Compile Include="AssignLead_Create.cs" />
     <Compile Include="AssignLead_Update.cs" />
     <Compile Include="CRMQueryExpression.cs" />
+    <Compile Include="Lead.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
