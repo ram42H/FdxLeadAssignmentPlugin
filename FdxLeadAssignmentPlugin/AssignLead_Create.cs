@@ -24,6 +24,7 @@ namespace FdxLeadAssignmentPlugin
             //Obtain execution contest from the service provider....
             IPluginExecutionContext context = (IPluginExecutionContext)serviceProvider.GetService(typeof(IPluginExecutionContext));
             int step = 0;
+            bool leadAssigned = true;
 
             //Call Input parameter collection to get all the data passes....
             if (context.InputParameters.Contains("Target") && context.InputParameters["Target"] is Entity)
@@ -50,11 +51,12 @@ namespace FdxLeadAssignmentPlugin
 
                     //Fetch data from lead entity....
                     step = 99;
-                    bool isGroupPractice = false ;
+                    bool isGroupPractice = false ;                    
                     if(leadEntity.Attributes.Contains("fdx_grppracactice"))
                         isGroupPractice = leadEntity.GetAttributeValue<bool>("fdx_grppracactice");
                     step = 98;
                     Guid zip = ((EntityReference)leadEntity.Attributes["fdx_zippostalcode"]).Id;
+                    string zipcodetext = (service.Retrieve("fdx_zipcode", zip, new ColumnSet("fdx_zipcode"))).Attributes["fdx_zipcode"].ToString();
                     step = 97;
                     string firstName = leadEntity.Attributes["firstname"].ToString();
                     step = 96;
@@ -62,13 +64,48 @@ namespace FdxLeadAssignmentPlugin
                     step = 95;
                     string phone = leadEntity.Attributes["telephone2"].ToString();
                     step = 94;
+                    string apiParm = string.Format("Zip={0}&Contact={1} {2}&Phone1={3}", zipcodetext, firstName, lastName, phone);
                     string email = "";
                     if(leadEntity.Attributes.Contains("emailaddress1"))
                         email = leadEntity.Attributes["emailaddress1"].ToString();
                     step = 93;
                     string companyName = "";
                     if (leadEntity.Attributes.Contains("companyname"))
+                    {
                         companyName = leadEntity.Attributes["companyname"].ToString();
+                        apiParm += string.Format("&Company={0}", companyName);
+                    }
+                    string title = "";
+                    if(leadEntity.Attributes.Contains("fdx_jobtitlerole"))
+                    {
+                        title = CRMQueryExpression.GetOptionsSetTextForValue(service, "lead", "fdx_jobtitlerole", ((OptionSetValue)leadEntity.Attributes["fdx_jobtitlerole"]).Value);
+                        apiParm += string.Format("&Title={0}", title);
+                    }
+                    string address1 = "";
+                    if(leadEntity.Attributes.Contains("address1_line1"))
+                    {
+                        address1 = leadEntity.Attributes["address1_line1"].ToString();
+                        apiParm += string.Format("&Address1={0}", address1);
+                    }
+                    string address2 = "";
+                    if (leadEntity.Attributes.Contains("address1_line2"))
+                    {
+                        address2 = leadEntity.Attributes["address1_line2"].ToString();
+                        apiParm += string.Format("&Address2={0}", address2);
+                    }
+                    string city = "";
+                    if(leadEntity.Attributes.Contains("address1_city"))
+                    {
+                        city = leadEntity.Attributes["address1_city"].ToString();
+                        apiParm += string.Format("&City={0}", city);
+                    }
+                    string state = "";
+                    if(leadEntity.Attributes.Contains("fdx_stateprovince"))
+                    {
+                        state = (service.Retrieve("fdx_state", ((EntityReference)leadEntity.Attributes["fdx_stateprovince"]).Id, new ColumnSet("fdx_statecode"))).Attributes["fdx_statecode"].ToString();
+                        apiParm += string.Format("&State={0}", state);
+                    }
+
                     Guid accountid;
 
                     //Set created on time based on Leads time zone....
@@ -356,27 +393,16 @@ namespace FdxLeadAssignmentPlugin
                     #region 8th check --> trigger next@bat....
                     if (step == 3 && (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1))
                     {
-                        //QueryExpression queryExp = CRMQueryExpression.getQueryExpression("workflow", new ColumnSet(true), new CRMQueryExpression[] { new CRMQueryExpression("name", ConditionOperator.Equal, "fdx - Lead Next@Bat"), new CRMQueryExpression("type", ConditionOperator.Equal, 1) });
-                        //EntityCollection collection = service.RetrieveMultiple(queryExp);
-                        //if (collection.Entities.Count > 0)
-                        //{
-                        //    step = 38;
-                        //    Guid processId = new Guid(collection.Entities[0].Id.ToString());
-                        //    ExecuteWorkflowRequest request = new ExecuteWorkflowRequest
-                        //    {
-                        //        EntityId = leadEntity.Id,
-                        //        WorkflowId = processId
-                        //    };
-                        //    ExecuteWorkflowResponse wfResponse = (ExecuteWorkflowResponse)service.Execute(request);
-                        //}
                         leadEntity["fdx_snb"] = true;
+                        leadAssigned = false;
                     }
                     #endregion
 
                     #region Set the address field as per the account if there is an existing account....
                     step = 4;
                     const string token = "8b6asd7-0775-4278-9bcb-c0d48f800112";
-                    string url = "http://SMARTCRMSync.1800dentist.com/api/lead/createleadasync?Zip={0}";
+                    string url = "http://SMARTCRMSync.1800dentist.com/api/lead/createleadasync?" + apiParm;//Zip={0}";
+
                     var uri = new Uri(string.Format(url,zipCode));
                     var request = WebRequest.Create(uri);
                     request.Method = WebRequestMethods.Http.Post;
@@ -402,7 +428,19 @@ namespace FdxLeadAssignmentPlugin
                         {
                             step = 72;
                             leadEntity["fdx_gonogo"] = new OptionSetValue(756480001);
-                            leadEntity["fdx_snb"] = false;
+                            if (!leadAssigned && ((((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1) || (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 4)))
+                            {
+                                step = 73;
+                                leadEntity["fdx_snb"] = false;
+                                QueryExpression teamQuery = CRMQueryExpression.getQueryExpression("team", new ColumnSet("name"), new CRMQueryExpression[] { new CRMQueryExpression("name", ConditionOperator.Equal, "Lead Review Team") });
+                                EntityCollection teamCollection = service.RetrieveMultiple(teamQuery);
+                                step = 74;
+                                if (teamCollection.Entities.Count > 0)
+                                {
+                                    Entity team = teamCollection.Entities[0];
+                                    leadEntity["ownerid"] = new EntityReference("team",team.Id);
+                                }                               
+                            }
                         }
                     }
                     #endregion

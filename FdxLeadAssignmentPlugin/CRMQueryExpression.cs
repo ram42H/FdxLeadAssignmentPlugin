@@ -74,5 +74,32 @@ namespace FdxLeadAssignmentPlugin
             }
             return optionsetValue;
         }
+        public static string GetOptionsSetTextForValue(IOrganizationService service, string entityName, string attributeName, int selectedValue)
+        {
+
+            RetrieveAttributeRequest retrieveAttributeRequest = new
+            RetrieveAttributeRequest
+            {
+                EntityLogicalName = entityName,
+                LogicalName = attributeName,
+                RetrieveAsIfPublished = true
+            };
+            // Execute the request.
+            RetrieveAttributeResponse retrieveAttributeResponse = (RetrieveAttributeResponse)service.Execute(retrieveAttributeRequest);
+            // Access the retrieved attribute.
+            Microsoft.Xrm.Sdk.Metadata.PicklistAttributeMetadata retrievedPicklistAttributeMetadata = (Microsoft.Xrm.Sdk.Metadata.PicklistAttributeMetadata)
+            retrieveAttributeResponse.AttributeMetadata;// Get the current options list for the retrieved attribute.
+            OptionMetadata[] optionList = retrievedPicklistAttributeMetadata.OptionSet.Options.ToArray();
+            string selectedOptionLabel = null;
+            foreach (OptionMetadata oMD in optionList)
+            {
+                if (oMD.Value == selectedValue)
+                {
+                    selectedOptionLabel = oMD.Label.LocalizedLabels[0].Label.ToString();
+                    break;
+                }
+            }
+            return selectedOptionLabel;
+        }
     }
 }
