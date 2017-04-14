@@ -25,6 +25,7 @@ namespace FdxLeadAssignmentPlugin
             IPluginExecutionContext context = (IPluginExecutionContext)serviceProvider.GetService(typeof(IPluginExecutionContext));
             int step = 0;
             bool leadAssigned = true;
+            bool acc_gmaccountno_exist = false;
 
             //Call Input parameter collection to get all the data passes....
             if (context.InputParameters.Contains("Target") && context.InputParameters["Target"] is Entity)
@@ -33,13 +34,6 @@ namespace FdxLeadAssignmentPlugin
 
                 if (leadEntity.LogicalName != "lead")
                     return;
-
-                //Entity object to update Lead....
-                //Entity leadEntity = new Entity()
-                //{
-                //    LogicalName = "lead",
-                //    Id = leadEntity.Id
-                //};
 
                 try
                 {
@@ -50,6 +44,7 @@ namespace FdxLeadAssignmentPlugin
                     WhoAmIResponse response = (WhoAmIResponse)service.Execute(new WhoAmIRequest());
 
                     //Fetch data from lead entity....
+                    string url = "";
                     step = 99;
                     bool isGroupPractice = false ;                    
                     if(leadEntity.Attributes.Contains("fdx_grppracactice"))
@@ -106,7 +101,7 @@ namespace FdxLeadAssignmentPlugin
                         apiParm += string.Format("&State={0}", state);
                     }
 
-                    Guid accountid;
+                    Guid accountid = Guid.Empty;
 
                     //Set created on time based on Leads time zone....
                     step = 1;
@@ -176,7 +171,7 @@ namespace FdxLeadAssignmentPlugin
                         #region 2nd check --> first name, last name and phone match an existing contact....
                         if (step == 3)
                         {
-                            queryExp = CRMQueryExpression.getQueryExpression("contact", new ColumnSet("accountid", "fullname", "ownerid"), new CRMQueryExpression[] { new CRMQueryExpression("firstname", ConditionOperator.Equal, firstName), new CRMQueryExpression("lastname", ConditionOperator.Equal, lastName), new CRMQueryExpression("telephone2", ConditionOperator.Equal, phone) });
+                            queryExp = CRMQueryExpression.getQueryExpression("contact", new ColumnSet("parentcustomerid", "fullname", "ownerid"), new CRMQueryExpression[] { new CRMQueryExpression("firstname", ConditionOperator.Equal, firstName), new CRMQueryExpression("lastname", ConditionOperator.Equal, lastName), new CRMQueryExpression("telephone2", ConditionOperator.Equal, phone) });
                             collection = service.RetrieveMultiple(queryExp);
                             if (collection.Entities.Count > 0)
                             {
@@ -188,11 +183,14 @@ namespace FdxLeadAssignmentPlugin
                                 leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)contact.Attributes["ownerid"]).Id);
 
                                 //Check if the account exist for the contact....
-                                if (contact.Attributes.Contains("acountid"))
+                                if (contact.Attributes.Contains("parentcustomerid"))
                                 {
-                                    leadEntity["accountid"] = new EntityReference("account", ((EntityReference)contact.Attributes["account"]).Id);
-                                    leadEntity["parentaccountid"] = new EntityReference("account", ((EntityReference)contact.Attributes["account"]).Id);
-                                    accountid = ((EntityReference)contact.Attributes["account"]).Id;
+                                    if (((EntityReference)contact.Attributes["parentcustomerid"]).LogicalName == "account")
+                                    {
+                                        leadEntity["accountid"] = new EntityReference("account", ((EntityReference)contact.Attributes["parentcustomerid"]).Id);
+                                        leadEntity["parentaccountid"] = new EntityReference("account", ((EntityReference)contact.Attributes["parentcustomerid"]).Id);
+                                        accountid = ((EntityReference)contact.Attributes["parentcustomerid"]).Id;
+                                    }
                                 }
                             }
                         }
@@ -250,7 +248,7 @@ namespace FdxLeadAssignmentPlugin
                         #region 4th check check --> Email matches an existing contact....
                         if (step == 3 && leadEntity.Attributes.Contains("emailaddress1"))
                         {
-                            queryExp = CRMQueryExpression.getQueryExpression("contact", new ColumnSet("accountid", "fullname", "ownerid"), new CRMQueryExpression[] { new CRMQueryExpression("emailaddress1", ConditionOperator.Equal, email) });
+                            queryExp = CRMQueryExpression.getQueryExpression("contact", new ColumnSet("parentcustomerid", "fullname", "ownerid"), new CRMQueryExpression[] { new CRMQueryExpression("emailaddress1", ConditionOperator.Equal, email) });
                             collection = service.RetrieveMultiple(queryExp);
                             if (collection.Entities.Count > 0)
                             {
@@ -262,11 +260,14 @@ namespace FdxLeadAssignmentPlugin
                                 leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)contact.Attributes["ownerid"]).Id);
 
                                 //Check if the account exist for the contact....
-                                if (contact.Attributes.Contains("acountid"))
+                                if (contact.Attributes.Contains("parentcustomerid"))
                                 {
-                                    leadEntity["accountid"] = new EntityReference("account", ((EntityReference)contact.Attributes["account"]).Id);
-                                    leadEntity["parentaccountid"] = new EntityReference("account", ((EntityReference)contact.Attributes["account"]).Id);
-                                    accountid = ((EntityReference)contact.Attributes["account"]).Id;
+                                    if (((EntityReference)contact.Attributes["parentcustomerid"]).LogicalName == "account")
+                                    {
+                                        leadEntity["accountid"] = new EntityReference("account", ((EntityReference)contact.Attributes["parentcustomerid"]).Id);
+                                        leadEntity["parentaccountid"] = new EntityReference("account", ((EntityReference)contact.Attributes["parentcustomerid"]).Id);
+                                        accountid = ((EntityReference)contact.Attributes["parentcustomerid"]).Id;
+                                    }
                                 }
                             }
                         }
@@ -388,8 +389,6 @@ namespace FdxLeadAssignmentPlugin
                         #endregion                        
                     }
 
-                    //service.Update(leadEntity);
-
                     #region 8th check --> trigger next@bat....
                     if (step == 3 && (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1))
                     {
@@ -398,52 +397,169 @@ namespace FdxLeadAssignmentPlugin
                     }
                     #endregion
 
+                    #region (Code Commented)Set the address field as per the account if there is an existing account....
+                    //step = 4;
+                    //const string token = "8b6asd7-0775-4278-9bcb-c0d48f800112";
+                    //string url = "http://SMARTCRMSync.1800dentist.com/api/lead/createleadasync?" + apiParm;//Zip={0}";
+
+                    //var uri = new Uri(string.Format(url,zipCode));
+                    //var request = WebRequest.Create(uri);
+                    //request.Method = WebRequestMethods.Http.Post;
+                    //request.ContentType = "application/json";
+                    //request.ContentLength = 0;
+                    //request.Headers.Add("Authorization", token);
+                    //step = 5;
+                    //using (var getResponse = request.GetResponse())
+                    //{
+                    //    DataContractJsonSerializer serializer =
+                    //                new DataContractJsonSerializer(typeof(Lead));
+
+                    //    step = 6;
+                    //    Lead leadObj = (Lead)serializer.ReadObject(getResponse.GetResponseStream());
+                    //    step = 7;
+                    //    leadEntity["fdx_goldmineaccountnumber"] = leadObj.goldMineId;
+                    //    if(leadObj.goNoGo)
+                    //    {
+                    //        step = 71;
+                    //        leadEntity["fdx_gonogo"] = new OptionSetValue(756480000);
+                    //    }
+                    //    else
+                    //    {
+                    //        step = 72;
+                    //        leadEntity["fdx_gonogo"] = new OptionSetValue(756480001);
+                    //        if (!leadAssigned && ((((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1) || (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 4)))
+                    //        {
+                    //            step = 73;
+                    //            leadEntity["fdx_snb"] = false;
+                    //            QueryExpression teamQuery = CRMQueryExpression.getQueryExpression("team", new ColumnSet("name"), new CRMQueryExpression[] { new CRMQueryExpression("name", ConditionOperator.Equal, "Lead Review Team") });
+                    //            EntityCollection teamCollection = service.RetrieveMultiple(teamQuery);
+                    //            step = 74;
+                    //            if (teamCollection.Entities.Count > 0)
+                    //            {
+                    //                Entity team = teamCollection.Entities[0];
+                    //                leadEntity["ownerid"] = new EntityReference("team",team.Id);
+                    //            }                               
+                    //        }
+                    //    }
+                    //}
+                    #endregion
+
                     #region Set the address field as per the account if there is an existing account....
-                    step = 4;
-                    const string token = "8b6asd7-0775-4278-9bcb-c0d48f800112";
-                    string url = "http://SMARTCRMSync.1800dentist.com/api/lead/createleadasync?" + apiParm;//Zip={0}";
-
-                    var uri = new Uri(string.Format(url,zipCode));
-                    var request = WebRequest.Create(uri);
-                    request.Method = WebRequestMethods.Http.Post;
-                    request.ContentType = "application/json";
-                    request.ContentLength = 0;
-                    request.Headers.Add("Authorization", token);
-                    step = 5;
-                    using (var getResponse = request.GetResponse())
+                    if(accountid != Guid.Empty)
                     {
-                        DataContractJsonSerializer serializer =
-                                    new DataContractJsonSerializer(typeof(Lead));
+                        QueryExpression accountQuery = CRMQueryExpression.getQueryExpression("account", new ColumnSet("name","fdx_goldmineaccountnumber", "fdx_gonogo","address1_line1","address1_line2","address1_city","fdx_stateprovinceid","fdx_zippostalcodeid","telephone1"), new CRMQueryExpression[] { new CRMQueryExpression("accountid", ConditionOperator.Equal, accountid) });
+                        EntityCollection accountCollection = service.RetrieveMultiple(accountQuery);
+                        if ((accountCollection.Entities.Count) > 0)
+                        {
+                            step = 135;
+                            Entity account = new Entity();
+                            account = accountCollection.Entities[0];
+                            if (!account.Attributes.Contains("fdx_goldmineaccountnumber"))
+                            {
+                                step = 194;
+                                apiParm = string.Format("Zip={0}&Phone1={1}", (service.Retrieve("fdx_zipcode", ((EntityReference)account.Attributes["fdx_zippostalcodeid"]).Id, new ColumnSet("fdx_zipcode"))).Attributes["fdx_zipcode"].ToString(), account.Attributes["telephone1"].ToString());
 
-                        step = 6;
-                        Lead leadObj = (Lead)serializer.ReadObject(getResponse.GetResponseStream());
-                        step = 7;
-                        leadEntity["fdx_goldmineaccountnumber"] = leadObj.goldMineId;
-                        if(leadObj.goNoGo)
-                        {
-                            step = 71;
-                            leadEntity["fdx_gonogo"] = new OptionSetValue(756480000);
+                                step = 195;
+                                if (account.Attributes.Contains("name"))
+                                    apiParm += string.Format("&Company={0}", account.Attributes["name"].ToString());
+
+                                step = 196;
+                                if (account.Attributes.Contains("address1_line1"))
+                                    apiParm += string.Format("&Address1={0}", account.Attributes["address1_line1"].ToString());
+
+                                step = 197;
+                                if (account.Attributes.Contains("address1_line2"))
+                                    apiParm += string.Format("&Address2={0}", account.Attributes["address1_line2"].ToString());
+
+                                step = 198;
+                                if (account.Attributes.Contains("address1_city"))
+                                    apiParm += string.Format("&City={0}", account.Attributes["address1_city"].ToString());
+
+                                step = 199;
+                                if (account.Attributes.Contains("fdx_stateprovinceid"))
+                                    apiParm += string.Format("&State={0}", (service.Retrieve("fdx_state", ((EntityReference)account.Attributes["fdx_stateprovinceid"]).Id, new ColumnSet("fdx_statecode"))).Attributes["fdx_statecode"].ToString());
+
+                                url = "http://SMARTCRMSync.1800dentist.com/api/lead/createleadasync?" + apiParm;
+                            }
+                            else
+                            {
+                                acc_gmaccountno_exist = true;
+                                leadEntity["fdx_goldmineaccountnumber"] = account.Attributes["fdx_goldmineaccountnumber"].ToString();
+                                leadEntity["fdx_gonogo"] = account.Attributes["fdx_gonogo"];
+                            }
                         }
-                        else
+                    }
+                    else
+                    {
+                        url = "http://SMARTCRMSync.1800dentist.com/api/lead/createleadasync?" + apiParm;
+                    }
+                    #endregion
+
+                    #region Call and update from API....
+                    Lead leadObj = new Lead();
+                    if (!acc_gmaccountno_exist)
+                    {
+                        step = 4;
+                        const string token = "8b6asd7-0775-4278-9bcb-c0d48f800112";
+                        //This zipCode needs to be changed to that of Account
+                        var uri = new Uri(url);
+                        var request = WebRequest.Create(uri);
+                        request.Method = WebRequestMethods.Http.Post;
+                        request.ContentType = "application/json";
+                        request.ContentLength = 0;
+                        request.Headers.Add("Authorization", token);
+                        step = 5;
+                        using (var getResponse = request.GetResponse())
                         {
-                            step = 72;
-                            leadEntity["fdx_gonogo"] = new OptionSetValue(756480001);
-                            if (!leadAssigned && ((((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1) || (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 4)))
+                            DataContractJsonSerializer serializer =
+                                        new DataContractJsonSerializer(typeof(Lead));
+
+                            step = 6;
+                            leadObj = (Lead)serializer.ReadObject(getResponse.GetResponseStream());
+                            step = 7;
+                            leadEntity["fdx_goldmineaccountnumber"] = leadObj.goldMineId;
+                            if (leadObj.goNoGo)
+                            {
+                                step = 71;
+                                leadEntity["fdx_gonogo"] = new OptionSetValue(756480000);
+                            }
+                            else
+                            {
+                                step = 72;
+                                leadEntity["fdx_gonogo"] = new OptionSetValue(756480001);                                
+                            }
+
+                            if (accountid != Guid.Empty)
                             {
                                 step = 73;
-                                leadEntity["fdx_snb"] = false;
-                                QueryExpression teamQuery = CRMQueryExpression.getQueryExpression("team", new ColumnSet("name"), new CRMQueryExpression[] { new CRMQueryExpression("name", ConditionOperator.Equal, "Lead Review Team") });
-                                EntityCollection teamCollection = service.RetrieveMultiple(teamQuery);
-                                step = 74;
-                                if (teamCollection.Entities.Count > 0)
+                                Entity acc = new Entity("account")
                                 {
-                                    Entity team = teamCollection.Entities[0];
-                                    leadEntity["ownerid"] = new EntityReference("team",team.Id);
-                                }                               
+                                    Id = accountid
+                                };
+                                acc.Attributes["fdx_goldmineaccountnumber"] = leadObj.goldMineId;
+                                acc.Attributes["fdx_gonogo"] = leadObj.goNoGo ? new OptionSetValue(756480000) : new OptionSetValue(756480001);
+                                service.Update(acc);
                             }
                         }
                     }
                     #endregion
+
+                    #region Condition to assign Lead to Lead Review Team....
+                    if (!leadAssigned && !leadObj.goNoGo && ((((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1) || (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 4)))
+                    {
+                        step = 74;
+                        leadEntity["fdx_snb"] = false;
+                        QueryExpression teamQuery = CRMQueryExpression.getQueryExpression("team", new ColumnSet("name"), new CRMQueryExpression[] { new CRMQueryExpression("name", ConditionOperator.Equal, "Lead Review Team") });
+                        EntityCollection teamCollection = service.RetrieveMultiple(teamQuery);
+                        step = 75;
+                        if (teamCollection.Entities.Count > 0)
+                        {
+                            Entity team = teamCollection.Entities[0];
+                            leadEntity["ownerid"] = new EntityReference("team", team.Id);
+                        }
+                    }
+                    #endregion
+
                 }
                 catch (FaultException<OrganizationServiceFault> ex)
                 {
