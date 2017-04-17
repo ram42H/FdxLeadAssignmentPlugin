@@ -389,11 +389,20 @@ namespace FdxLeadAssignmentPlugin
                         #endregion                        
                     }
 
-                    #region 8th check --> trigger next@bat....
-                    if (step == 3 && (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1))
+                    #region (Code Commented)8th check --> trigger next@bat....
+                    //if (step == 3 && (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1))
+                    //{
+                    //    leadEntity["fdx_snb"] = true;
+                    //    leadAssigned = false;
+                    //}
+                    #endregion
+
+                    #region 8th check --> Set lead Assigned to False and trigger next@bat only for Web Leads....
+                    if (step == 3 && (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1 || ((OptionSetValue)leadEntity["leadsourcecode"]).Value == 4))
                     {
-                        leadEntity["fdx_snb"] = true;
                         leadAssigned = false;
+                        if (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1)
+                            leadEntity["fdx_snb"] = true;                        
                     }
                     #endregion
 
