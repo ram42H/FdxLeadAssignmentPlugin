@@ -103,6 +103,19 @@ namespace FdxLeadAssignmentPlugin
 
                     Guid accountid = Guid.Empty;
 
+                    /*Raghava Chandra - Update 1 on 26-Apr-2017*/
+
+                    //To Check if Existing Account is specified while creating a new Lead. This field will have value from context only if Lead is of type Email,PhoneCall or other generally
+                    if ((((OptionSetValue)leadEntity["leadsourcecode"]).Value == 2) || (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 3) || (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 5))
+                    {
+                        if (leadEntity.Attributes.Contains("parentaccountid"))
+                        {
+                            accountid = ((EntityReference)leadEntity.Attributes["parentaccountid"]).Id;
+                        }
+                    }
+
+                    /*End of Update 1*/
+
                     //Set created on time based on Leads time zone....
                     step = 1;
                     Entity zipEntity = service.Retrieve("fdx_zipcode", zip, new ColumnSet("fdx_zipcode", "fdx_timezone"));
