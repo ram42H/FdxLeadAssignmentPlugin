@@ -158,7 +158,7 @@ namespace FdxLeadAssignmentPlugin
                         step = 3;
 
                         #region 1st check --> first name, last name and phone matches an existing Lead....
-                        QueryExpression queryExp = CRMQueryExpression.getQueryExpression("lead", new ColumnSet("leadid", "contactid", "parentcontactid", "accountid", "parentaccountid", "ownerid"), new CRMQueryExpression[] { new CRMQueryExpression("firstname", ConditionOperator.Equal, firstName), new CRMQueryExpression("lastname", ConditionOperator.Equal, lastName), new CRMQueryExpression("telephone2", ConditionOperator.Equal, phone) });
+                        QueryExpression queryExp = CRMQueryExpression.getQueryExpression("lead", new ColumnSet("leadid", "contactid", "parentcontactid", "accountid", "parentaccountid", "ownerid","owningteam"), new CRMQueryExpression[] { new CRMQueryExpression("firstname", ConditionOperator.Equal, firstName), new CRMQueryExpression("lastname", ConditionOperator.Equal, lastName), new CRMQueryExpression("telephone2", ConditionOperator.Equal, phone) });
                         EntityCollection collection = service.RetrieveMultiple(queryExp);
                         if (collection.Entities.Count > 0)
                         {
@@ -176,7 +176,11 @@ namespace FdxLeadAssignmentPlugin
                                 leadEntity["parentaccountid"] = new EntityReference("account", ((EntityReference)lead.Attributes["parentaccountid"]).Id);
                                 accountid = ((EntityReference)lead.Attributes["parentaccountid"]).Id;
                             }
-                            leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)lead.Attributes["ownerid"]).Id);
+
+                            if (lead.Attributes.Contains("owningteam"))
+                                leadEntity["ownerid"] = new EntityReference(lead["owningteam"] != null ? "team" : "systemuser", ((EntityReference)lead.Attributes["ownerid"]).Id);
+                            else
+                                leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)lead.Attributes["ownerid"]).Id);
 
                         }
                         #endregion
@@ -184,7 +188,7 @@ namespace FdxLeadAssignmentPlugin
                         #region 2nd check --> first name, last name and phone match an existing contact....
                         if (step == 3)
                         {
-                            queryExp = CRMQueryExpression.getQueryExpression("contact", new ColumnSet("parentcustomerid", "fullname", "ownerid"), new CRMQueryExpression[] { new CRMQueryExpression("firstname", ConditionOperator.Equal, firstName), new CRMQueryExpression("lastname", ConditionOperator.Equal, lastName), new CRMQueryExpression("telephone2", ConditionOperator.Equal, phone) });
+                            queryExp = CRMQueryExpression.getQueryExpression("contact", new ColumnSet("parentcustomerid", "fullname", "ownerid", "owningteam"), new CRMQueryExpression[] { new CRMQueryExpression("firstname", ConditionOperator.Equal, firstName), new CRMQueryExpression("lastname", ConditionOperator.Equal, lastName), new CRMQueryExpression("telephone2", ConditionOperator.Equal, phone) });
                             collection = service.RetrieveMultiple(queryExp);
                             if (collection.Entities.Count > 0)
                             {
@@ -193,7 +197,11 @@ namespace FdxLeadAssignmentPlugin
                                 contact = collection.Entities[0];
                                 leadEntity["contactid"] = new EntityReference("contact", contact.Id);
                                 leadEntity["parentcontactid"] = new EntityReference("contact", contact.Id);
-                                leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)contact.Attributes["ownerid"]).Id);
+
+                                if (contact.Attributes.Contains("owningteam"))
+                                    leadEntity["ownerid"] = new EntityReference(contact["owningteam"] != null ? "team" : "systemuser" , ((EntityReference)contact.Attributes["ownerid"]).Id);
+                                else
+                                    leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)contact.Attributes["ownerid"]).Id);
 
                                 //Check if the account exist for the contact....
                                 if (contact.Attributes.Contains("parentcustomerid"))
@@ -235,7 +243,7 @@ namespace FdxLeadAssignmentPlugin
                         #region 3rd check --> email matches an existing lead....
                         if (step == 3 && leadEntity.Attributes.Contains("emailaddress1"))
                         {
-                            queryExp = CRMQueryExpression.getQueryExpression("lead", new ColumnSet("leadid", "contactid", "parentcontactid", "accountid", "parentaccountid", "ownerid"), new CRMQueryExpression[] { new CRMQueryExpression("emailaddress1", ConditionOperator.Equal, email) });
+                            queryExp = CRMQueryExpression.getQueryExpression("lead", new ColumnSet("leadid", "contactid", "parentcontactid", "accountid", "parentaccountid", "ownerid", "owningteam"), new CRMQueryExpression[] { new CRMQueryExpression("emailaddress1", ConditionOperator.Equal, email) });
                             collection = service.RetrieveMultiple(queryExp);
                             if (collection.Entities.Count > 0)
                             {
@@ -253,7 +261,11 @@ namespace FdxLeadAssignmentPlugin
                                     leadEntity["parentaccountid"] = new EntityReference("account", ((EntityReference)lead.Attributes["parentaccountid"]).Id);
                                     accountid=((EntityReference)lead.Attributes["parentaccountid"]).Id;
                                 }
-                                leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)lead.Attributes["ownerid"]).Id);
+                                
+                                if (lead.Attributes.Contains("owningteam"))
+                                    leadEntity["ownerid"] = new EntityReference(lead["owningteam"] != null ? "team" : "systemuser", ((EntityReference)lead.Attributes["ownerid"]).Id);
+                                else
+                                    leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)lead.Attributes["ownerid"]).Id);
                             }
                         }
                         #endregion
@@ -261,7 +273,7 @@ namespace FdxLeadAssignmentPlugin
                         #region 4th check check --> Email matches an existing contact....
                         if (step == 3 && leadEntity.Attributes.Contains("emailaddress1"))
                         {
-                            queryExp = CRMQueryExpression.getQueryExpression("contact", new ColumnSet("parentcustomerid", "fullname", "ownerid"), new CRMQueryExpression[] { new CRMQueryExpression("emailaddress1", ConditionOperator.Equal, email) });
+                            queryExp = CRMQueryExpression.getQueryExpression("contact", new ColumnSet("parentcustomerid", "fullname", "ownerid", "owningteam"), new CRMQueryExpression[] { new CRMQueryExpression("emailaddress1", ConditionOperator.Equal, email) });
                             collection = service.RetrieveMultiple(queryExp);
                             if (collection.Entities.Count > 0)
                             {
@@ -270,7 +282,11 @@ namespace FdxLeadAssignmentPlugin
                                 contact = collection.Entities[0];
                                 leadEntity["contactid"] = new EntityReference("contact", contact.Id);
                                 leadEntity["parentcontactid"] = new EntityReference("contact", contact.Id);
-                                leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)contact.Attributes["ownerid"]).Id);
+
+                                if (contact.Attributes.Contains("owningteam"))
+                                    leadEntity["ownerid"] = new EntityReference(contact["owningteam"] != null ? "team" : "systemuser", ((EntityReference)contact.Attributes["ownerid"]).Id);
+                                else
+                                    leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)contact.Attributes["ownerid"]).Id);
 
                                 //Check if the account exist for the contact....
                                 if (contact.Attributes.Contains("parentcustomerid"))
@@ -335,7 +351,7 @@ namespace FdxLeadAssignmentPlugin
                         #region 5th check --> company name and zipcode matches an existing account....
                         if (step == 3 && leadEntity.Attributes.Contains("companyname"))
                         {
-                            queryExp = CRMQueryExpression.getQueryExpression("account", new ColumnSet("accountid", "primarycontactid", "ownerid"), new CRMQueryExpression[] { new CRMQueryExpression("name", ConditionOperator.Equal, companyName), new CRMQueryExpression("address1_postalcode", ConditionOperator.Equal, zipEntity.Attributes["fdx_zipcode"].ToString()) });
+                            queryExp = CRMQueryExpression.getQueryExpression("account", new ColumnSet("accountid", "primarycontactid", "ownerid", "owningteam"), new CRMQueryExpression[] { new CRMQueryExpression("name", ConditionOperator.Equal, companyName), new CRMQueryExpression("address1_postalcode", ConditionOperator.Equal, zipEntity.Attributes["fdx_zipcode"].ToString()) });
                             collection = service.RetrieveMultiple(queryExp);
                             if (collection.Entities.Count > 0)
                             {
@@ -344,7 +360,12 @@ namespace FdxLeadAssignmentPlugin
                                 account = collection.Entities[0];
                                 leadEntity["accountid"] = new EntityReference("account", account.Id);
                                 leadEntity["parentaccountid"] = new EntityReference("account", account.Id);
-                                leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)account.Attributes["ownerid"]).Id);
+                                
+                                if (account.Attributes.Contains("owningteam"))
+                                    leadEntity["ownerid"] = new EntityReference(account["owningteam"] != null ? "team" : "systemuser", ((EntityReference)account.Attributes["ownerid"]).Id);
+                                else
+                                    leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)account.Attributes["ownerid"]).Id);
+
                                 accountid = account.Id;
 
                                 //Check if the account exist for the contact....
@@ -360,7 +381,7 @@ namespace FdxLeadAssignmentPlugin
                         #region 6th check --> company name and zipcode matches an existing lead....
                         if (step == 3 && leadEntity.Attributes.Contains("companyname"))
                         {
-                            queryExp = CRMQueryExpression.getQueryExpression("lead", new ColumnSet("leadid", "contactid", "parentcontactid", "accountid", "parentaccountid", "ownerid"), new CRMQueryExpression[] { new CRMQueryExpression("companyname", ConditionOperator.Equal, companyName), new CRMQueryExpression("address1_postalcode", ConditionOperator.Equal, zipEntity.Attributes["fdx_zipcode"].ToString()) });
+                            queryExp = CRMQueryExpression.getQueryExpression("lead", new ColumnSet("leadid", "contactid", "parentcontactid", "accountid", "parentaccountid", "ownerid","owningteam"), new CRMQueryExpression[] { new CRMQueryExpression("companyname", ConditionOperator.Equal, companyName), new CRMQueryExpression("address1_postalcode", ConditionOperator.Equal, zipEntity.Attributes["fdx_zipcode"].ToString()) });
                             collection = service.RetrieveMultiple(queryExp);
                             if (collection.Entities.Count > 0)
                             {
@@ -378,7 +399,11 @@ namespace FdxLeadAssignmentPlugin
                                     leadEntity["parentaccountid"] = new EntityReference("account", ((EntityReference)lead.Attributes["parentaccountid"]).Id);
                                     accountid = ((EntityReference)lead.Attributes["parentaccountid"]).Id;
                                 }
-                                leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)lead.Attributes["ownerid"]).Id);
+
+                                if (lead.Attributes.Contains("owningteam"))
+                                    leadEntity["ownerid"] = new EntityReference(lead["owningteam"] != null ? "team" : "systemuser", ((EntityReference)lead.Attributes["ownerid"]).Id);
+                                else
+                                    leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)lead.Attributes["ownerid"]).Id);
 
                             }
                         }
