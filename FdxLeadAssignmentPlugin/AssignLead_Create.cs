@@ -526,7 +526,8 @@ namespace FdxLeadAssignmentPlugin
                                 if (account.Attributes.Contains("fdx_stateprovinceid"))
                                     apiParm += string.Format("&State={0}", (service.Retrieve("fdx_state", ((EntityReference)account.Attributes["fdx_stateprovinceid"]).Id, new ColumnSet("fdx_statecode"))).Attributes["fdx_statecode"].ToString());
 
-                                url = "http://SMARTCRMSync.1800dentist.com/api/lead/createleadasync?" + apiParm;
+                                //url = "http://SMARTCRMSyncProd.1800dentist.com/api/lead/createlead?" + apiParm;
+                                url = "http://SMARTCRMSync.1800dentist.com/api/lead/createlead?" + apiParm;
                             }
                             else
                             {
@@ -538,7 +539,8 @@ namespace FdxLeadAssignmentPlugin
                     }
                     else
                     {
-                        url = "http://SMARTCRMSync.1800dentist.com/api/lead/createleadasync?" + apiParm;
+                        //url = "http://SMARTCRMSyncProd.1800dentist.com/api/lead/createlead?" + apiParm;
+                        url = "http://SMARTCRMSync.1800dentist.com/api/lead/createlead?" + apiParm;
                     }
                     #endregion
 
