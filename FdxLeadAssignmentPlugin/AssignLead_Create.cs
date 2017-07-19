@@ -9,6 +9,7 @@ using System.Net;
 using System.Runtime.Serialization.Json;
 using System.ServiceModel;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace FdxLeadAssignmentPlugin
@@ -57,7 +58,8 @@ namespace FdxLeadAssignmentPlugin
                     step = 96;
                     string lastName = leadEntity.Attributes["lastname"].ToString();
                     step = 95;
-                    string phone = leadEntity.Attributes["telephone2"].ToString();
+                    string phone = Regex.Replace(leadEntity.Attributes["telephone2"].ToString(),@"[^0-9]+", "");
+                    //string phone = leadEntity.Attributes["telephone2"].ToString();
                     step = 94;
                     string apiParm = string.Format("Zip={0}&Contact={1} {2}&Phone1={3}", zipcodetext, firstName, lastName, phone);
                     string email = "";
@@ -504,8 +506,9 @@ namespace FdxLeadAssignmentPlugin
                             if (!account.Attributes.Contains("fdx_goldmineaccountnumber"))
                             {
                                 step = 194;
-                                apiParm = string.Format("Zip={0}&Phone1={1}", (service.Retrieve("fdx_zipcode", ((EntityReference)account.Attributes["fdx_zippostalcodeid"]).Id, new ColumnSet("fdx_zipcode"))).Attributes["fdx_zipcode"].ToString(), account.Attributes["telephone1"].ToString());
+                                apiParm = string.Format("Zip={0}&Phone1={1}", (service.Retrieve("fdx_zipcode", ((EntityReference)account.Attributes["fdx_zippostalcodeid"]).Id, new ColumnSet("fdx_zipcode"))).Attributes["fdx_zipcode"].ToString(), Regex.Replace(account.Attributes["telephone1"].ToString(),@"[^0-9]+", ""));
 
+                                //apiParm = string.Format("Zip={0}&Phone1={1}", (service.Retrieve("fdx_zipcode", ((EntityReference)account.Attributes["fdx_zippostalcodeid"]).Id, new ColumnSet("fdx_zipcode"))).Attributes["fdx_zipcode"].ToString(), account.Attributes["telephone1"].ToString());
                                 step = 195;
                                 if (account.Attributes.Contains("name"))
                                     apiParm += string.Format("&Company={0}", account.Attributes["name"].ToString());
