@@ -44,6 +44,15 @@ namespace FdxLeadAssignmentPlugin
                     //Get current user information....
                     WhoAmIResponse response = (WhoAmIResponse)service.Execute(new WhoAmIRequest());
 
+                    if (leadEntity.Attributes.Contains("telephone1"))
+                        leadEntity.Attributes["telephone1"] = Regex.Replace(leadEntity.Attributes["telephone1"].ToString(), @"[^0-9]+", "");
+
+                    if (leadEntity.Attributes.Contains("telephone2"))
+                        leadEntity.Attributes["telephone2"] = Regex.Replace(leadEntity.Attributes["telephone2"].ToString(), @"[^0-9]+", "");
+
+                    if (leadEntity.Attributes.Contains("telephone3"))
+                        leadEntity.Attributes["telephone3"] = Regex.Replace(leadEntity.Attributes["telephone3"].ToString(), @"[^0-9]+", "");
+                     
                     //Fetch data from lead entity....
                     string url = "";
                     step = 99;
