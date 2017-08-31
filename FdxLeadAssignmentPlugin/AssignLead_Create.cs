@@ -446,11 +446,11 @@ namespace FdxLeadAssignmentPlugin
                     //}
                     #endregion
 
-                    #region 8th check --> Set lead Assigned to False and trigger next@bat only for Web Leads....
+                    #region 8th check --> Set lead Assigned to False and trigger next@bat only for Web Leads (new leads only and not cloned)....
                     if (step == 3 && (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1 || ((OptionSetValue)leadEntity["leadsourcecode"]).Value == 4))
                     {
                         leadAssigned = false;
-                        if (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1)
+                        if (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1 && !leadEntity.Attributes.Contains("fdx_leadid"))
                             leadEntity["fdx_snb"] = true;                        
                     }
                     #endregion
@@ -539,13 +539,13 @@ namespace FdxLeadAssignmentPlugin
                                     apiParm += string.Format("&State={0}", (service.Retrieve("fdx_state", ((EntityReference)account.Attributes["fdx_stateprovinceid"]).Id, new ColumnSet("fdx_statecode"))).Attributes["fdx_statecode"].ToString());
 
                                 //1. To point to Dev
-                                url = "http://SMARTCRMSync.1800dentist.com/api/lead/createlead?" + apiParm;
+                                //url = "http://SMARTCRMSync.1800dentist.com/api/lead/createlead?" + apiParm;
                                 
                                 //2. To point to Stage
                                 //url = "http://smartcrmsyncstage.1800dentist.com/api/lead/createlead?" + apiParm;
                                 
                                 //3. To point to Production
-                                //url = "http://SMARTCRMSyncProd.1800dentist.com/api/lead/createlead?" + apiParm;
+                                url = "http://SMARTCRMSyncProd.1800dentist.com/api/lead/createlead?" + apiParm;
                                 
                             }
                             else
@@ -559,13 +559,13 @@ namespace FdxLeadAssignmentPlugin
                     else
                     {
                         //1. To point to Dev
-                        url = "http://SMARTCRMSync.1800dentist.com/api/lead/createlead?" + apiParm;
+                        //url = "http://SMARTCRMSync.1800dentist.com/api/lead/createlead?" + apiParm;
 
                         //2. To point to Stage
                         //url = "http://smartcrmsyncstage.1800dentist.com/api/lead/createlead?" + apiParm;
 
                         //3. To point to Production
-                        //url = "http://SMARTCRMSyncProd.1800dentist.com/api/lead/createlead?" + apiParm;
+                        url = "http://SMARTCRMSyncProd.1800dentist.com/api/lead/createlead?" + apiParm;
                                 
                     }
                     #endregion
@@ -632,6 +632,19 @@ namespace FdxLeadAssignmentPlugin
                             Entity team = teamCollection.Entities[0];
                             leadEntity["ownerid"] = new EntityReference("team", team.Id);
                         }
+                    }
+                    #endregion
+
+                    #region Condition if Cloned Lead: override owner of cloned lead = originating lead's owner
+
+                    if (leadEntity.Attributes.Contains("fdx_leadid"))
+                    {
+                        Entity OriginatingLead = service.Retrieve("lead", ((EntityReference)leadEntity.Attributes["fdx_leadid"]).Id, new ColumnSet("ownerid", "owningteam"));
+
+                        if (OriginatingLead.Attributes.Contains("owningteam"))
+                            leadEntity["ownerid"] = new EntityReference(OriginatingLead["owningteam"] != null ? "team" : "systemuser", ((EntityReference)OriginatingLead.Attributes["ownerid"]).Id);
+                        else
+                            leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)OriginatingLead.Attributes["ownerid"]).Id);
                     }
                     #endregion
 
