@@ -164,7 +164,8 @@ namespace FdxLeadAssignmentPlugin
                         //#endregion
                         #endregion
                     }
-                    else if ((((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1) || (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 4))
+                    //else if ((((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1) || (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 4)) -- Code commented by Ram as part of SMART593
+                    else
                     {
                         step = 3;
 
@@ -188,10 +189,14 @@ namespace FdxLeadAssignmentPlugin
                                 accountid = ((EntityReference)lead.Attributes["parentaccountid"]).Id;
                             }
 
-                            if (lead.Attributes.Contains("owningteam"))
-                                leadEntity["ownerid"] = new EntityReference(lead["owningteam"] != null ? "team" : "systemuser", ((EntityReference)lead.Attributes["ownerid"]).Id);
-                            else
-                                leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)lead.Attributes["ownerid"]).Id);
+                            //Condition added by Ram as Part of SMART593....
+                            if ((((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1) || (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 4))
+                            {
+                                if (lead.Attributes.Contains("owningteam"))
+                                    leadEntity["ownerid"] = new EntityReference(lead["owningteam"] != null ? "team" : "systemuser", ((EntityReference)lead.Attributes["ownerid"]).Id);
+                                else
+                                    leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)lead.Attributes["ownerid"]).Id);
+                            }
 
                         }
                         #endregion
@@ -209,10 +214,14 @@ namespace FdxLeadAssignmentPlugin
                                 leadEntity["contactid"] = new EntityReference("contact", contact.Id);
                                 leadEntity["parentcontactid"] = new EntityReference("contact", contact.Id);
 
-                                if (contact.Attributes.Contains("owningteam"))
-                                    leadEntity["ownerid"] = new EntityReference(contact["owningteam"] != null ? "team" : "systemuser" , ((EntityReference)contact.Attributes["ownerid"]).Id);
-                                else
-                                    leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)contact.Attributes["ownerid"]).Id);
+                                //Condition added by Ram as Part of SMART593....
+                                if ((((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1) || (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 4))
+                                {
+                                    if (contact.Attributes.Contains("owningteam"))
+                                        leadEntity["ownerid"] = new EntityReference(contact["owningteam"] != null ? "team" : "systemuser", ((EntityReference)contact.Attributes["ownerid"]).Id);
+                                    else
+                                        leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)contact.Attributes["ownerid"]).Id);
+                                }
 
                                 //Check if the account exist for the contact....
                                 if (contact.Attributes.Contains("parentcustomerid"))
@@ -261,10 +270,12 @@ namespace FdxLeadAssignmentPlugin
                                 step = 33;
                                 Entity lead = new Entity();
                                 lead = collection.Entities[0];
-                                if (lead.Attributes.Contains("contactid"))
-                                    leadEntity["contactid"] = new EntityReference("contact", ((EntityReference)lead.Attributes["contactid"]).Id);
-                                if (lead.Attributes.Contains("parentcontactid"))
-                                    leadEntity["parentcontactid"] = new EntityReference("contact", ((EntityReference)lead.Attributes["parentcontactid"]).Id);
+                                //Start :: Commented as part of SMART-627....
+                                //if (lead.Attributes.Contains("contactid"))
+                                //    leadEntity["contactid"] = new EntityReference("contact", ((EntityReference)lead.Attributes["contactid"]).Id);
+                                //if (lead.Attributes.Contains("parentcontactid"))
+                                //    leadEntity["parentcontactid"] = new EntityReference("contact", ((EntityReference)lead.Attributes["parentcontactid"]).Id);
+                                //End :: Commented as part of SMART-627....
                                 if (lead.Attributes.Contains("accountid"))
                                     leadEntity["accountid"] = new EntityReference("account", ((EntityReference)lead.Attributes["accountid"]).Id);
                                 if (lead.Attributes.Contains("parentaccountid"))
@@ -272,11 +283,15 @@ namespace FdxLeadAssignmentPlugin
                                     leadEntity["parentaccountid"] = new EntityReference("account", ((EntityReference)lead.Attributes["parentaccountid"]).Id);
                                     accountid=((EntityReference)lead.Attributes["parentaccountid"]).Id;
                                 }
-                                
-                                if (lead.Attributes.Contains("owningteam"))
-                                    leadEntity["ownerid"] = new EntityReference(lead["owningteam"] != null ? "team" : "systemuser", ((EntityReference)lead.Attributes["ownerid"]).Id);
-                                else
-                                    leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)lead.Attributes["ownerid"]).Id);
+
+                                //Condition added by Ram as Part of SMART593....
+                                if ((((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1) || (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 4))
+                                {
+                                    if (lead.Attributes.Contains("owningteam"))
+                                        leadEntity["ownerid"] = new EntityReference(lead["owningteam"] != null ? "team" : "systemuser", ((EntityReference)lead.Attributes["ownerid"]).Id);
+                                    else
+                                        leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)lead.Attributes["ownerid"]).Id);
+                                }
                             }
                         }
                         #endregion
@@ -291,13 +306,19 @@ namespace FdxLeadAssignmentPlugin
                                 step = 34;
                                 Entity contact = new Entity();
                                 contact = collection.Entities[0];
-                                leadEntity["contactid"] = new EntityReference("contact", contact.Id);
-                                leadEntity["parentcontactid"] = new EntityReference("contact", contact.Id);
+                                //Start :: Commented as part of SMART-627....
+                                //leadEntity["contactid"] = new EntityReference("contact", contact.Id);
+                                //leadEntity["parentcontactid"] = new EntityReference("contact", contact.Id);
+                                //Start :: Commented as part of SMART-627....
 
-                                if (contact.Attributes.Contains("owningteam"))
-                                    leadEntity["ownerid"] = new EntityReference(contact["owningteam"] != null ? "team" : "systemuser", ((EntityReference)contact.Attributes["ownerid"]).Id);
-                                else
-                                    leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)contact.Attributes["ownerid"]).Id);
+                                //Condition added by Ram as Part of SMART593....
+                                if ((((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1) || (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 4))
+                                {
+                                    if (contact.Attributes.Contains("owningteam"))
+                                        leadEntity["ownerid"] = new EntityReference(contact["owningteam"] != null ? "team" : "systemuser", ((EntityReference)contact.Attributes["ownerid"]).Id);
+                                    else
+                                        leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)contact.Attributes["ownerid"]).Id);
+                                }
 
                                 //Check if the account exist for the contact....
                                 if (contact.Attributes.Contains("parentcustomerid"))
@@ -371,11 +392,15 @@ namespace FdxLeadAssignmentPlugin
                                 account = collection.Entities[0];
                                 leadEntity["accountid"] = new EntityReference("account", account.Id);
                                 leadEntity["parentaccountid"] = new EntityReference("account", account.Id);
-                                
-                                if (account.Attributes.Contains("owningteam"))
-                                    leadEntity["ownerid"] = new EntityReference(account["owningteam"] != null ? "team" : "systemuser", ((EntityReference)account.Attributes["ownerid"]).Id);
-                                else
-                                    leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)account.Attributes["ownerid"]).Id);
+
+                                //Condition added by Ram as Part of SMART593....
+                                if ((((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1) || (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 4))
+                                {
+                                    if (account.Attributes.Contains("owningteam"))
+                                        leadEntity["ownerid"] = new EntityReference(account["owningteam"] != null ? "team" : "systemuser", ((EntityReference)account.Attributes["ownerid"]).Id);
+                                    else
+                                        leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)account.Attributes["ownerid"]).Id);
+                                }
 
                                 accountid = account.Id;
 
@@ -411,10 +436,14 @@ namespace FdxLeadAssignmentPlugin
                                     accountid = ((EntityReference)lead.Attributes["parentaccountid"]).Id;
                                 }
 
-                                if (lead.Attributes.Contains("owningteam"))
-                                    leadEntity["ownerid"] = new EntityReference(lead["owningteam"] != null ? "team" : "systemuser", ((EntityReference)lead.Attributes["ownerid"]).Id);
-                                else
-                                    leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)lead.Attributes["ownerid"]).Id);
+                                //Condition added by Ram as Part of SMART593....
+                                if ((((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1) || (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 4))
+                                {
+                                    if (lead.Attributes.Contains("owningteam"))
+                                        leadEntity["ownerid"] = new EntityReference(lead["owningteam"] != null ? "team" : "systemuser", ((EntityReference)lead.Attributes["ownerid"]).Id);
+                                    else
+                                        leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)lead.Attributes["ownerid"]).Id);
+                                }
 
                             }
                         }
@@ -423,16 +452,20 @@ namespace FdxLeadAssignmentPlugin
                         #region 7th check --> Assiagn SAE based on zipcode....
                         if (step == 3)
                         {
-                            Entity zipcode = service.Retrieve("fdx_zipcode", zip, new ColumnSet("fdx_territory", "fdx_zipcode"));
-                            if (zipcode.Attributes.Contains("fdx_territory"))
+                            //Condition added by Ram as Part of SMART593....
+                            if ((((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1) || (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 4))
                             {
-                                step = 37;
-                                Entity zipTerritory = service.Retrieve("fdx_zipcode", zipcode.Id, new ColumnSet("fdx_territory"));
-                                Entity territory = new Entity();
-                                if (zipTerritory.Attributes.Contains("fdx_territory"))
-                                    territory = service.Retrieve("territory", ((EntityReference)zipcode.Attributes["fdx_territory"]).Id, new ColumnSet("managerid"));
-                                if (territory.Attributes.Contains("managerid"))
-                                    leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)territory.Attributes["managerid"]).Id);
+                                Entity zipcode = service.Retrieve("fdx_zipcode", zip, new ColumnSet("fdx_territory", "fdx_zipcode"));
+                                if (zipcode.Attributes.Contains("fdx_territory"))
+                                {
+                                    step = 37;
+                                    Entity zipTerritory = service.Retrieve("fdx_zipcode", zipcode.Id, new ColumnSet("fdx_territory"));
+                                    Entity territory = new Entity();
+                                    if (zipTerritory.Attributes.Contains("fdx_territory"))
+                                        territory = service.Retrieve("territory", ((EntityReference)zipcode.Attributes["fdx_territory"]).Id, new ColumnSet("managerid"));
+                                    if (territory.Attributes.Contains("managerid"))
+                                        leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)territory.Attributes["managerid"]).Id);
+                                }
                             }
                         }
                         #endregion                        
@@ -539,13 +572,13 @@ namespace FdxLeadAssignmentPlugin
                                     apiParm += string.Format("&State={0}", (service.Retrieve("fdx_state", ((EntityReference)account.Attributes["fdx_stateprovinceid"]).Id, new ColumnSet("fdx_statecode"))).Attributes["fdx_statecode"].ToString());
 
                                 //1. To point to Dev
-                                //url = "http://SMARTCRMSync.1800dentist.com/api/lead/createlead?" + apiParm;
+                                url = "http://SMARTCRMSync.1800dentist.com/api/lead/createlead?" + apiParm;
                                 
                                 //2. To point to Stage
                                 //url = "http://smartcrmsyncstage.1800dentist.com/api/lead/createlead?" + apiParm;
                                 
                                 //3. To point to Production
-                                url = "http://SMARTCRMSyncProd.1800dentist.com/api/lead/createlead?" + apiParm;
+                                //url = "http://SMARTCRMSyncProd.1800dentist.com/api/lead/createlead?" + apiParm;
                                 
                             }
                             else
@@ -559,13 +592,13 @@ namespace FdxLeadAssignmentPlugin
                     else
                     {
                         //1. To point to Dev
-                        //url = "http://SMARTCRMSync.1800dentist.com/api/lead/createlead?" + apiParm;
+                        url = "http://SMARTCRMSync.1800dentist.com/api/lead/createlead?" + apiParm;
 
                         //2. To point to Stage
                         //url = "http://smartcrmsyncstage.1800dentist.com/api/lead/createlead?" + apiParm;
 
                         //3. To point to Production
-                        url = "http://SMARTCRMSyncProd.1800dentist.com/api/lead/createlead?" + apiParm;
+                        //url = "http://SMARTCRMSyncProd.1800dentist.com/api/lead/createlead?" + apiParm;
                                 
                     }
                     #endregion
