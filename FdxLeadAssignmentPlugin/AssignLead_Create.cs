@@ -177,6 +177,8 @@ namespace FdxLeadAssignmentPlugin
                             step = 31;
                             Entity lead = new Entity();
                             lead = collection.Entities[0];
+                            if (!leadEntity.Attributes.Contains("fdx_leadid"))
+                                leadEntity["fdx_leadid"] = new EntityReference("lead", lead.Id);
                             if (lead.Attributes.Contains("contactid"))
                                 leadEntity["contactid"] = new EntityReference("contact", ((EntityReference)lead.Attributes["contactid"]).Id);
                             if (lead.Attributes.Contains("parentcontactid"))
@@ -200,7 +202,7 @@ namespace FdxLeadAssignmentPlugin
 
                         }
                         #endregion
-
+                                                   
                         #region 2nd check --> first name, last name and phone match an existing contact....
                         if (step == 3)
                         {
@@ -237,6 +239,37 @@ namespace FdxLeadAssignmentPlugin
                         }
                         #endregion
 
+                        #region 8th check --> Office phone number maches an existing lead....
+                        if (step == 3)
+                        {
+                            queryExp = CRMQueryExpression.getQueryExpression("lead", new ColumnSet("leadid", "contactid", "parentcontactid", "accountid", "parentaccountid", "ownerid", "owningteam"), new CRMQueryExpression[] { new CRMQueryExpression("telephone2", ConditionOperator.Equal, phone) });
+                            collection = service.RetrieveMultiple(queryExp);
+                            if (collection.Entities.Count > 0)
+                            {
+                                step = 38;
+                                Entity lead = new Entity();
+                                lead = collection.Entities[0];
+                                if (!leadEntity.Attributes.Contains("fdx_leadid"))
+                                    leadEntity["fdx_leadid"] = new EntityReference("lead", lead.Id);
+                                if (lead.Attributes.Contains("accountid"))
+                                    leadEntity["accountid"] = new EntityReference("account", ((EntityReference)lead.Attributes["accountid"]).Id);
+                                if (lead.Attributes.Contains("parentaccountid"))
+                                {
+                                    leadEntity["parentaccountid"] = new EntityReference("account", ((EntityReference)lead.Attributes["parentaccountid"]).Id);
+                                    accountid = ((EntityReference)lead.Attributes["parentaccountid"]).Id;
+                                }
+                                if ((((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1) || (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 4))
+                                {
+                                    if (lead.Attributes.Contains("owningteam"))
+                                        leadEntity["ownerid"] = new EntityReference(lead["owningteam"] != null ? "team" : "systemuser", ((EntityReference)lead.Attributes["ownerid"]).Id);
+                                    else
+                                        leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)lead.Attributes["ownerid"]).Id);
+                                }
+
+                            }
+                        }
+                        #endregion
+
                         #region (Code commented) --> phone number in contact entity....
                         //if (step == 3)
                         //{
@@ -259,6 +292,38 @@ namespace FdxLeadAssignmentPlugin
                         //    }
                         //}
                         #endregion
+
+                        #region 9th check --> office phone matches any phone number in an existing account....
+                        if (step == 3)
+                        {
+                            queryExp = CRMQueryExpression.getQueryExpression("account", new ColumnSet("accountid", "primarycontactid", "ownerid"), new CRMQueryExpression[] { new CRMQueryExpression("telephone2", ConditionOperator.Equal, phone), new CRMQueryExpression("telephone1", ConditionOperator.Equal, phone), new CRMQueryExpression("telephone3", ConditionOperator.Equal, phone) }, LogicalOperator.Or);
+                            collection = service.RetrieveMultiple(queryExp);
+                            if (collection.Entities.Count > 0)
+                            {
+                                step = 39;
+                                Entity account = new Entity();
+                                account = collection.Entities[0];
+
+                                Entity matchedLead = new Entity();
+                                matchedLead = getAccountMatchedLead(account, service);
+                                if (!(matchedLead.Id == Guid.Empty) && !(leadEntity.Attributes.Contains("fdx_leadid")))
+                                    leadEntity["fdx_leadid"] = new EntityReference("lead", matchedLead.Id);
+
+                                leadEntity["accountid"] = new EntityReference("account", account.Id);
+                                leadEntity["parentaccountid"] = new EntityReference("account", account.Id);
+                                if ((((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1) || (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 4))
+                                {
+                                    if (account.Attributes.Contains("owningteam"))
+                                        leadEntity["ownerid"] = new EntityReference(account["owningteam"] != null ? "team" : "systemuser", ((EntityReference)account.Attributes["ownerid"]).Id);
+                                    else
+                                        leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)account.Attributes["ownerid"]).Id);
+                                }
+
+                                accountid = account.Id;
+
+                            }
+                        }
+                        #endregion
                         
                         #region 3rd check --> email matches an existing lead....
                         if (step == 3 && leadEntity.Attributes.Contains("emailaddress1"))
@@ -270,6 +335,8 @@ namespace FdxLeadAssignmentPlugin
                                 step = 33;
                                 Entity lead = new Entity();
                                 lead = collection.Entities[0];
+                                if (!leadEntity.Attributes.Contains("fdx_leadid"))
+                                    leadEntity["fdx_leadid"] = new EntityReference("lead", lead.Id);
                                 //Start :: Commented as part of SMART-627....
                                 //if (lead.Attributes.Contains("contactid"))
                                 //    leadEntity["contactid"] = new EntityReference("contact", ((EntityReference)lead.Attributes["contactid"]).Id);
@@ -296,7 +363,38 @@ namespace FdxLeadAssignmentPlugin
                         }
                         #endregion
 
-                        #region 4th check check --> Email matches an existing contact....
+                        #region 10th check --> email matches an existing account....
+                        if (step == 3)
+                        {
+                            queryExp = CRMQueryExpression.getQueryExpression("account", new ColumnSet("accountid", "primarycontactid", "ownerid"), new CRMQueryExpression[] { new CRMQueryExpression("emailaddress1", ConditionOperator.Equal, email) });
+                            collection = service.RetrieveMultiple(queryExp);
+                            if (collection.Entities.Count > 0)
+                            {
+                                step = 310;
+                                Entity account = new Entity();
+                                account = collection.Entities[0];
+
+                                Entity matchedLead = new Entity();
+                                matchedLead = getAccountMatchedLead(account, service);
+                                if (!(matchedLead.Id == Guid.Empty) && !(leadEntity.Attributes.Contains("fdx_leadid")))
+                                    leadEntity["fdx_leadid"] = new EntityReference("lead", matchedLead.Id);
+
+                                leadEntity["accountid"] = new EntityReference("account", account.Id);
+                                leadEntity["parentaccountid"] = new EntityReference("account", account.Id);
+                                if ((((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1) || (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 4))
+                                {
+                                    if (account.Attributes.Contains("owningteam"))
+                                        leadEntity["ownerid"] = new EntityReference(account["owningteam"] != null ? "team" : "systemuser", ((EntityReference)account.Attributes["ownerid"]).Id);
+                                    else
+                                        leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)account.Attributes["ownerid"]).Id);
+                                }
+
+                                accountid = account.Id;
+                            }
+                        }
+                        #endregion
+
+                        #region 4th check --> Email matches an existing contact....
                         if (step == 3 && leadEntity.Attributes.Contains("emailaddress1"))
                         {
                             queryExp = CRMQueryExpression.getQueryExpression("contact", new ColumnSet("parentcustomerid", "fullname", "ownerid", "owningteam"), new CRMQueryExpression[] { new CRMQueryExpression("emailaddress1", ConditionOperator.Equal, email) });
@@ -332,53 +430,7 @@ namespace FdxLeadAssignmentPlugin
                                 }
                             }
                         }
-                        #endregion
-
-                        #region (Code commented) --> phone in account entity....
-                        //if (step == 3)
-                        //{
-                        //    queryExp = CRMQueryExpression.getQueryExpression("account", new ColumnSet("accountid", "primarycontactid", "ownerid"), new CRMQueryExpression[] { new CRMQueryExpression("telephone2", ConditionOperator.Equal, phone) });
-                        //    if ((service.RetrieveMultiple(queryExp).Entities.Count) > 0)
-                        //    {
-                        //        step = 34;
-                        //        Entity account = new Entity();
-                        //        account = service.RetrieveMultiple(queryExp).Entities[0];
-                        //        leadEntity["accountid"] = new EntityReference("account", account.Id);
-                        //        leadEntity["parentaccountid"] = new EntityReference("account", account.Id);
-                        //        leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)account.Attributes["ownerid"]).Id);
-
-                        //        //Check if the account exist for the contact....
-                        //        if (account.Attributes.Contains("primarycontactid"))
-                        //        {
-                        //            leadEntity["contactd"] = new EntityReference("contact", ((EntityReference)account.Attributes["primarycontactid"]).Id);
-                        //            leadEntity["parentcontactid"] = new EntityReference("contact", ((EntityReference)account.Attributes["primarycontactid"]).Id);
-                        //        }
-                        //    }
-                        //}
-                        #endregion
-
-                        #region (Code commented) --> email in account entity....
-                        //if (step == 3)
-                        //{
-                        //    queryExp = CRMQueryExpression.getQueryExpression("account", new ColumnSet("accountid", "primarycontactid", "ownerid"), new CRMQueryExpression[] { new CRMQueryExpression("emailaddress1", ConditionOperator.Equal, email) });
-                        //    if ((service.RetrieveMultiple(queryExp).Entities.Count) > 0)
-                        //    {
-                        //        step = 35;
-                        //        Entity account = new Entity();
-                        //        account = service.RetrieveMultiple(queryExp).Entities[0];
-                        //        leadEntity["accountid"] = new EntityReference("account", account.Id);
-                        //        leadEntity["parentaccountid"] = new EntityReference("account", account.Id);
-                        //        leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)account.Attributes["ownerid"]).Id);
-
-                        //        //Check if the account exist for the contact....
-                        //        if (account.Attributes.Contains("primarycontactid"))
-                        //        {
-                        //            leadEntity["contactd"] = new EntityReference("contact", ((EntityReference)account.Attributes["primarycontactid"]).Id);
-                        //            leadEntity["parentcontactid"] = new EntityReference("contact", ((EntityReference)account.Attributes["primarycontactid"]).Id);
-                        //        }
-                        //    }
-                        //}
-                        #endregion
+                        #endregion                                                                      
 
                         #region 5th check --> company name and zipcode matches an existing account....
                         if (step == 3 && leadEntity.Attributes.Contains("companyname"))
@@ -390,6 +442,12 @@ namespace FdxLeadAssignmentPlugin
                                 step = 35;
                                 Entity account = new Entity();
                                 account = collection.Entities[0];
+
+                                Entity matchedLead = new Entity();
+                                matchedLead = getAccountMatchedLead(account, service);
+                                if (!(matchedLead.Id == Guid.Empty) && !(leadEntity.Attributes.Contains("fdx_leadid")))
+                                    leadEntity["fdx_leadid"] = new EntityReference("lead", matchedLead.Id);
+
                                 leadEntity["accountid"] = new EntityReference("account", account.Id);
                                 leadEntity["parentaccountid"] = new EntityReference("account", account.Id);
 
@@ -424,6 +482,8 @@ namespace FdxLeadAssignmentPlugin
                                 step = 36;
                                 Entity lead = new Entity();
                                 lead = collection.Entities[0];
+                                if (!leadEntity.Attributes.Contains("fdx_leadid"))
+                                    leadEntity["fdx_leadid"] = new EntityReference("lead", lead.Id);
                                 //if (lead.Attributes.Contains("contactid"))
                                 //    leadEntity["contactid"] = new EntityReference("contact", ((EntityReference)lead.Attributes["contactid"]).Id);
                                 //if (lead.Attributes.Contains("parentcontactid"))
@@ -447,7 +507,7 @@ namespace FdxLeadAssignmentPlugin
 
                             }
                         }
-                        #endregion
+                        #endregion                        
 
                         #region 7th check --> Assiagn SAE based on zipcode....
                         if (step == 3)
@@ -572,13 +632,13 @@ namespace FdxLeadAssignmentPlugin
                                     apiParm += string.Format("&State={0}", (service.Retrieve("fdx_state", ((EntityReference)account.Attributes["fdx_stateprovinceid"]).Id, new ColumnSet("fdx_statecode"))).Attributes["fdx_statecode"].ToString());
 
                                 //1. To point to Dev
-                                url = "http://SMARTCRMSync.1800dentist.com/api/lead/createlead?" + apiParm;
+                                //url = "http://SMARTCRMSync.1800dentist.com/api/lead/createlead?" + apiParm;
                                 
                                 //2. To point to Stage
                                 //url = "http://smartcrmsyncstage.1800dentist.com/api/lead/createlead?" + apiParm;
                                 
                                 //3. To point to Production
-                                //url = "http://SMARTCRMSyncProd.1800dentist.com/api/lead/createlead?" + apiParm;
+                                url = "http://SMARTCRMSyncProd.1800dentist.com/api/lead/createlead?" + apiParm;
                                 
                             }
                             else
@@ -592,13 +652,13 @@ namespace FdxLeadAssignmentPlugin
                     else
                     {
                         //1. To point to Dev
-                        url = "http://SMARTCRMSync.1800dentist.com/api/lead/createlead?" + apiParm;
+                        //url = "http://SMARTCRMSync.1800dentist.com/api/lead/createlead?" + apiParm;
 
                         //2. To point to Stage
                         //url = "http://smartcrmsyncstage.1800dentist.com/api/lead/createlead?" + apiParm;
 
                         //3. To point to Production
-                        //url = "http://SMARTCRMSyncProd.1800dentist.com/api/lead/createlead?" + apiParm;
+                        url = "http://SMARTCRMSyncProd.1800dentist.com/api/lead/createlead?" + apiParm;
                                 
                     }
                     #endregion
@@ -692,6 +752,18 @@ namespace FdxLeadAssignmentPlugin
                     throw;
                 }
             }
+        }
+
+        private Entity getAccountMatchedLead(Entity _account, IOrganizationService _service)
+        {
+            Entity lead = new Entity ();
+            QueryExpression queryExp = CRMQueryExpression.getQueryExpression("lead", new ColumnSet("leadid", "contactid", "parentcontactid", "accountid", "parentaccountid", "ownerid", "owningteam"), new CRMQueryExpression[] { new CRMQueryExpression("accountid", ConditionOperator.Equal, _account.Id), new CRMQueryExpression("parentaccountid", ConditionOperator.Equal, _account.Id) }, LogicalOperator.Or);
+            EntityCollection collection = _service.RetrieveMultiple(queryExp);
+
+            if (collection.Entities.Count > 0)
+                lead = collection.Entities[0];
+
+            return lead;
         }
     }
 }
