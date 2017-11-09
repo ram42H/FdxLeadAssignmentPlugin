@@ -60,14 +60,31 @@ namespace FdxLeadAssignmentPlugin
                     if(leadEntity.Attributes.Contains("fdx_grppracactice"))
                         isGroupPractice = leadEntity.GetAttributeValue<bool>("fdx_grppracactice");
                     step = 98;
-                    Guid zip = ((EntityReference)leadEntity.Attributes["fdx_zippostalcode"]).Id;
-                    string zipcodetext = (service.Retrieve("fdx_zipcode", zip, new ColumnSet("fdx_zipcode"))).Attributes["fdx_zipcode"].ToString();
+                    string zipcodetext = "";
+                    Guid zip = Guid.Empty;
+                    if (leadEntity.Attributes.Contains("fdx_zippostalcode"))
+                    {
+                        zip = ((EntityReference)leadEntity.Attributes["fdx_zippostalcode"]).Id;
+                        zipcodetext = (service.Retrieve("fdx_zipcode", zip, new ColumnSet("fdx_zipcode"))).Attributes["fdx_zipcode"].ToString();
+                    }
                     step = 97;
-                    string firstName = leadEntity.Attributes["firstname"].ToString();
+                    string firstName = "";
+                    if (leadEntity.Attributes.Contains("firstname"))
+                    {
+                        firstName = leadEntity.Attributes["firstname"].ToString();
+                    }
                     step = 96;
-                    string lastName = leadEntity.Attributes["lastname"].ToString();
+                    string lastName = "";
+                    if (leadEntity.Attributes.Contains("lastname"))
+                    {
+                        lastName = leadEntity.Attributes["lastname"].ToString();
+                    }
                     step = 95;
-                    string phone = Regex.Replace(leadEntity.Attributes["telephone2"].ToString(),@"[^0-9]+", "");
+                    string phone = "";
+                    if (leadEntity.Attributes.Contains("telephone2"))
+                    {
+                        phone = Regex.Replace(leadEntity.Attributes["telephone2"].ToString(), @"[^0-9]+", "");
+                    }
                     //string phone = leadEntity.Attributes["telephone2"].ToString();
                     step = 94;
                     string apiParm = string.Format("Zip={0}&Contact={1} {2}&Phone1={3}", zipcodetext, firstName, lastName, phone);
@@ -129,18 +146,26 @@ namespace FdxLeadAssignmentPlugin
 
                     //Set created on time based on Leads time zone....
                     step = 1;
-                    Entity zipEntity = service.Retrieve("fdx_zipcode", zip, new ColumnSet("fdx_zipcode", "fdx_timezone"));
-                    string zipCode = zipEntity.Attributes["fdx_zipcode"].ToString();
-                    if (zipEntity.Attributes.Contains("fdx_timezone"))
+                    Entity zipEntity = new Entity ();
+                    if (zip != Guid.Empty)
                     {
-                        int timeZoneCode = Convert.ToInt32(zipEntity["fdx_timezone"]);
-                        QueryExpression tzDefinationQuery = CRMQueryExpression.getQueryExpression("timezonedefinition", new ColumnSet("standardname"), new CRMQueryExpression[] { new CRMQueryExpression("timezonecode", ConditionOperator.Equal, timeZoneCode) });
+                        string zipCode = "";
+                        zipEntity = service.Retrieve("fdx_zipcode", zip, new ColumnSet("fdx_zipcode", "fdx_timezone"));
+                        if (zipEntity.Attributes.Contains("fdx_zipcode"))
+                        {
+                            zipCode = zipEntity.Attributes["fdx_zipcode"].ToString();
+                            if (zipEntity.Attributes.Contains("fdx_timezone"))
+                            {
+                                int timeZoneCode = Convert.ToInt32(zipEntity["fdx_timezone"]);
+                                QueryExpression tzDefinationQuery = CRMQueryExpression.getQueryExpression("timezonedefinition", new ColumnSet("standardname"), new CRMQueryExpression[] { new CRMQueryExpression("timezonecode", ConditionOperator.Equal, timeZoneCode) });
 
-                        Entity tzDefination = service.RetrieveMultiple(tzDefinationQuery).Entities[0];
-                        DateTime timeUtc = DateTime.UtcNow;
-                        TimeZoneInfo tzInfo = TimeZoneInfo.FindSystemTimeZoneById(tzDefination.Attributes["standardname"].ToString());
-                        DateTime tzTime = TimeZoneInfo.ConvertTimeFromUtc(timeUtc, tzInfo);
-                        leadEntity["fdx_createdontime"] = tzTime.Hour;
+                                Entity tzDefination = service.RetrieveMultiple(tzDefinationQuery).Entities[0];
+                                DateTime timeUtc = DateTime.UtcNow;
+                                TimeZoneInfo tzInfo = TimeZoneInfo.FindSystemTimeZoneById(tzDefination.Attributes["standardname"].ToString());
+                                DateTime tzTime = TimeZoneInfo.ConvertTimeFromUtc(timeUtc, tzInfo);
+                                leadEntity["fdx_createdontime"] = tzTime.Hour;
+                            }
+                        }
                     }
 
                     if(isGroupPractice)
@@ -433,7 +458,7 @@ namespace FdxLeadAssignmentPlugin
                         #endregion                                                                      
 
                         #region 5th check --> company name and zipcode matches an existing account....
-                        if (step == 3 && leadEntity.Attributes.Contains("companyname"))
+                        if (step == 3 && leadEntity.Attributes.Contains("companyname") && zipEntity.Attributes.Contains("fdx_zipcode"))
                         {
                             queryExp = CRMQueryExpression.getQueryExpression("account", new ColumnSet("accountid", "primarycontactid", "ownerid", "owningteam"), new CRMQueryExpression[] { new CRMQueryExpression("name", ConditionOperator.Equal, companyName), new CRMQueryExpression("address1_postalcode", ConditionOperator.Equal, zipEntity.Attributes["fdx_zipcode"].ToString()) });
                             collection = service.RetrieveMultiple(queryExp);
@@ -473,7 +498,7 @@ namespace FdxLeadAssignmentPlugin
                         #endregion
 
                         #region 6th check --> company name and zipcode matches an existing lead....
-                        if (step == 3 && leadEntity.Attributes.Contains("companyname"))
+                        if (step == 3 && leadEntity.Attributes.Contains("companyname") && zipEntity.Attributes.Contains("fdx_zipcode"))
                         {
                             queryExp = CRMQueryExpression.getQueryExpression("lead", new ColumnSet("leadid", "contactid", "parentcontactid", "accountid", "parentaccountid", "ownerid","owningteam"), new CRMQueryExpression[] { new CRMQueryExpression("companyname", ConditionOperator.Equal, companyName), new CRMQueryExpression("address1_postalcode", ConditionOperator.Equal, zipEntity.Attributes["fdx_zipcode"].ToString()) });
                             collection = service.RetrieveMultiple(queryExp);
@@ -515,16 +540,20 @@ namespace FdxLeadAssignmentPlugin
                             //Condition added by Ram as Part of SMART593....
                             if ((((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1) || (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 4))
                             {
-                                Entity zipcode = service.Retrieve("fdx_zipcode", zip, new ColumnSet("fdx_territory", "fdx_zipcode"));
-                                if (zipcode.Attributes.Contains("fdx_territory"))
+                                Entity zipcode = new Entity ();
+                                if (zip != Guid.Empty)
                                 {
-                                    step = 37;
-                                    Entity zipTerritory = service.Retrieve("fdx_zipcode", zipcode.Id, new ColumnSet("fdx_territory"));
-                                    Entity territory = new Entity();
-                                    if (zipTerritory.Attributes.Contains("fdx_territory"))
-                                        territory = service.Retrieve("territory", ((EntityReference)zipcode.Attributes["fdx_territory"]).Id, new ColumnSet("managerid"));
-                                    if (territory.Attributes.Contains("managerid"))
-                                        leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)territory.Attributes["managerid"]).Id);
+                                    zipcode = service.Retrieve("fdx_zipcode", zip, new ColumnSet("fdx_territory", "fdx_zipcode"));
+                                    if (zipcode.Attributes.Contains("fdx_territory"))
+                                    {
+                                        step = 37;
+                                        Entity zipTerritory = service.Retrieve("fdx_zipcode", zipcode.Id, new ColumnSet("fdx_territory"));
+                                        Entity territory = new Entity();
+                                        if (zipTerritory.Attributes.Contains("fdx_territory"))
+                                            territory = service.Retrieve("territory", ((EntityReference)zipcode.Attributes["fdx_territory"]).Id, new ColumnSet("managerid"));
+                                        if (territory.Attributes.Contains("managerid"))
+                                            leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)territory.Attributes["managerid"]).Id);
+                                    }
                                 }
                             }
                         }
