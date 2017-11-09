@@ -87,7 +87,16 @@ namespace FdxLeadAssignmentPlugin
                     }
                     //string phone = leadEntity.Attributes["telephone2"].ToString();
                     step = 94;
-                    string apiParm = string.Format("Zip={0}&Contact={1} {2}&Phone1={3}", zipcodetext, firstName, lastName, phone);
+                    string apiParm = "";
+                    if(zipcodetext != "")
+                     apiParm = string.Format("Zip={0}", zipcodetext);
+
+                    if(firstName != "")
+                        apiParm += string.Format("{2}Contact={0} {1}", firstName, lastName, apiParm != "" ? "&" : "");
+
+                    if (phone != "")
+                        apiParm += string.Format("{1}Phone1={0}", phone, apiParm != "" ? "&" : "");
+
                     string email = "";
                     if(leadEntity.Attributes.Contains("emailaddress1"))
                         email = leadEntity.Attributes["emailaddress1"].ToString();
@@ -96,37 +105,37 @@ namespace FdxLeadAssignmentPlugin
                     if (leadEntity.Attributes.Contains("companyname"))
                     {
                         companyName = leadEntity.Attributes["companyname"].ToString();
-                        apiParm += string.Format("&Company={0}", companyName);
+                        apiParm += string.Format("{1}Company={0}", companyName, apiParm != "" ? "&" : "");
                     }
                     string title = "";
                     if(leadEntity.Attributes.Contains("fdx_jobtitlerole"))
                     {
                         title = CRMQueryExpression.GetOptionsSetTextForValue(service, "lead", "fdx_jobtitlerole", ((OptionSetValue)leadEntity.Attributes["fdx_jobtitlerole"]).Value);
-                        apiParm += string.Format("&Title={0}", title);
+                        apiParm += string.Format("{1}Title={0}", title, apiParm != "" ? "&" : "");
                     }
                     string address1 = "";
                     if(leadEntity.Attributes.Contains("address1_line1"))
                     {
                         address1 = leadEntity.Attributes["address1_line1"].ToString();
-                        apiParm += string.Format("&Address1={0}", address1);
+                        apiParm += string.Format("{1}Address1={0}", address1, apiParm != "" ? "&" : "");
                     }
                     string address2 = "";
                     if (leadEntity.Attributes.Contains("address1_line2"))
                     {
                         address2 = leadEntity.Attributes["address1_line2"].ToString();
-                        apiParm += string.Format("&Address2={0}", address2);
+                        apiParm += string.Format("{1}Address2={0}", address2, apiParm != "" ? "&" : "");
                     }
                     string city = "";
                     if(leadEntity.Attributes.Contains("address1_city"))
                     {
                         city = leadEntity.Attributes["address1_city"].ToString();
-                        apiParm += string.Format("&City={0}", city);
+                        apiParm += string.Format("{1}City={0}", city, apiParm != "" ? "&" : "");
                     }
                     string state = "";
                     if(leadEntity.Attributes.Contains("fdx_stateprovince"))
                     {
                         state = (service.Retrieve("fdx_state", ((EntityReference)leadEntity.Attributes["fdx_stateprovince"]).Id, new ColumnSet("fdx_statecode"))).Attributes["fdx_statecode"].ToString();
-                        apiParm += string.Format("&State={0}", state);
+                        apiParm += string.Format("{1}State={0}", state, apiParm != "" ? "&" : "");
                     }
 
                     Guid accountid = Guid.Empty;
@@ -642,32 +651,32 @@ namespace FdxLeadAssignmentPlugin
                                 //apiParm = string.Format("Zip={0}&Phone1={1}", (service.Retrieve("fdx_zipcode", ((EntityReference)account.Attributes["fdx_zippostalcodeid"]).Id, new ColumnSet("fdx_zipcode"))).Attributes["fdx_zipcode"].ToString(), account.Attributes["telephone1"].ToString());
                                 step = 195;
                                 if (account.Attributes.Contains("name"))
-                                    apiParm += string.Format("&Company={0}", account.Attributes["name"].ToString());
+                                    apiParm += string.Format("{1}Company={0}", account.Attributes["name"].ToString(), apiParm != "" ? "&" : "");
 
                                 step = 196;
                                 if (account.Attributes.Contains("address1_line1"))
-                                    apiParm += string.Format("&Address1={0}", account.Attributes["address1_line1"].ToString());
+                                    apiParm += string.Format("{1}Address1={0}", account.Attributes["address1_line1"].ToString(), apiParm != "" ? "&" : "");
 
                                 step = 197;
                                 if (account.Attributes.Contains("address1_line2"))
-                                    apiParm += string.Format("&Address2={0}", account.Attributes["address1_line2"].ToString());
+                                    apiParm += string.Format("{1}Address2={0}", account.Attributes["address1_line2"].ToString(), apiParm != "" ? "&" : "");
 
                                 step = 198;
                                 if (account.Attributes.Contains("address1_city"))
-                                    apiParm += string.Format("&City={0}", account.Attributes["address1_city"].ToString());
+                                    apiParm += string.Format("{1}City={0}", account.Attributes["address1_city"].ToString(), apiParm != "" ? "&" : "");
 
                                 step = 199;
                                 if (account.Attributes.Contains("fdx_stateprovinceid"))
-                                    apiParm += string.Format("&State={0}", (service.Retrieve("fdx_state", ((EntityReference)account.Attributes["fdx_stateprovinceid"]).Id, new ColumnSet("fdx_statecode"))).Attributes["fdx_statecode"].ToString());
+                                    apiParm += string.Format("{1}State={0}", (service.Retrieve("fdx_state", ((EntityReference)account.Attributes["fdx_stateprovinceid"]).Id, new ColumnSet("fdx_statecode"))).Attributes["fdx_statecode"].ToString(), apiParm != "" ? "&" : "");
 
                                 //1. To point to Dev
                                 //url = "http://SMARTCRMSync.1800dentist.com/api/lead/createlead?" + apiParm;
                                 
                                 //2. To point to Stage
-                                //url = "http://smartcrmsyncstage.1800dentist.com/api/lead/createlead?" + apiParm;
+                                url = "http://smartcrmsyncstage.1800dentist.com/api/lead/createlead?" + apiParm;
                                 
                                 //3. To point to Production
-                                url = "http://SMARTCRMSyncProd.1800dentist.com/api/lead/createlead?" + apiParm;
+                                //url = "http://SMARTCRMSyncProd.1800dentist.com/api/lead/createlead?" + apiParm;
                                 
                             }
                             else
@@ -684,10 +693,10 @@ namespace FdxLeadAssignmentPlugin
                         //url = "http://SMARTCRMSync.1800dentist.com/api/lead/createlead?" + apiParm;
 
                         //2. To point to Stage
-                        //url = "http://smartcrmsyncstage.1800dentist.com/api/lead/createlead?" + apiParm;
+                        url = "http://smartcrmsyncstage.1800dentist.com/api/lead/createlead?" + apiParm;
 
                         //3. To point to Production
-                        url = "http://SMARTCRMSyncProd.1800dentist.com/api/lead/createlead?" + apiParm;
+                        //url = "http://SMARTCRMSyncProd.1800dentist.com/api/lead/createlead?" + apiParm;
                                 
                     }
                     #endregion
