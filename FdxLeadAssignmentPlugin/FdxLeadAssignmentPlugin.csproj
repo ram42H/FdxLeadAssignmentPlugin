@@ -77,6 +77,8 @@
     <Compile Include="CRMQueryExpression.cs" />
     <Compile Include="Lead.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ProspectData.cs" />
+    <Compile Include="UpdateProspectData.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="fdxLeadAssignmentPlugin.snk" />

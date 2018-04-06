@@ -41,9 +41,6 @@ namespace FdxLeadAssignmentPlugin
                     IOrganizationServiceFactory serviceFactory = (IOrganizationServiceFactory)serviceProvider.GetService(typeof(IOrganizationServiceFactory));
                     IOrganizationService service = serviceFactory.CreateOrganizationService(context.UserId);
 
-                    //Get current user information....
-                    WhoAmIResponse response = (WhoAmIResponse)service.Execute(new WhoAmIRequest());
-
                     if (leadEntity.Attributes.Contains("telephone1"))
                         leadEntity.Attributes["telephone1"] = Regex.Replace(leadEntity.Attributes["telephone1"].ToString(), @"[^0-9]+", "");
 
@@ -52,12 +49,12 @@ namespace FdxLeadAssignmentPlugin
 
                     if (leadEntity.Attributes.Contains("telephone3"))
                         leadEntity.Attributes["telephone3"] = Regex.Replace(leadEntity.Attributes["telephone3"].ToString(), @"[^0-9]+", "");
-                     
+
                     //Fetch data from lead entity....
                     string url = "";
                     step = 99;
-                    bool isGroupPractice = false ;                    
-                    if(leadEntity.Attributes.Contains("fdx_grppracactice"))
+                    bool isGroupPractice = false;
+                    if (leadEntity.Attributes.Contains("fdx_grppracactice"))
                         isGroupPractice = leadEntity.GetAttributeValue<bool>("fdx_grppracactice");
                     step = 98;
                     string zipcodetext = "";
@@ -88,17 +85,17 @@ namespace FdxLeadAssignmentPlugin
                     //string phone = leadEntity.Attributes["telephone2"].ToString();
                     step = 94;
                     string apiParm = "";
-                    if(zipcodetext != "")
-                     apiParm = string.Format("Zip={0}", zipcodetext);
+                    if (zipcodetext != "")
+                        apiParm = string.Format("Zip={0}", zipcodetext);
 
-                    if(firstName != "")
+                    if (firstName != "")
                         apiParm += string.Format("{2}Contact={0} {1}", firstName, lastName, apiParm != "" ? "&" : "");
 
                     if (phone != "")
                         apiParm += string.Format("{1}Phone1={0}", phone, apiParm != "" ? "&" : "");
 
                     string email = "";
-                    if(leadEntity.Attributes.Contains("emailaddress1"))
+                    if (leadEntity.Attributes.Contains("emailaddress1"))
                         email = leadEntity.Attributes["emailaddress1"].ToString();
                     step = 93;
                     string companyName = "";
@@ -108,13 +105,13 @@ namespace FdxLeadAssignmentPlugin
                         apiParm += string.Format("{1}Company={0}", companyName, apiParm != "" ? "&" : "");
                     }
                     string title = "";
-                    if(leadEntity.Attributes.Contains("fdx_jobtitlerole"))
+                    if (leadEntity.Attributes.Contains("fdx_jobtitlerole"))
                     {
                         title = CRMQueryExpression.GetOptionsSetTextForValue(service, "lead", "fdx_jobtitlerole", ((OptionSetValue)leadEntity.Attributes["fdx_jobtitlerole"]).Value);
                         apiParm += string.Format("{1}Title={0}", title, apiParm != "" ? "&" : "");
                     }
                     string address1 = "";
-                    if(leadEntity.Attributes.Contains("address1_line1"))
+                    if (leadEntity.Attributes.Contains("address1_line1"))
                     {
                         address1 = leadEntity.Attributes["address1_line1"].ToString();
                         apiParm += string.Format("{1}Address1={0}", address1, apiParm != "" ? "&" : "");
@@ -126,13 +123,13 @@ namespace FdxLeadAssignmentPlugin
                         apiParm += string.Format("{1}Address2={0}", address2, apiParm != "" ? "&" : "");
                     }
                     string city = "";
-                    if(leadEntity.Attributes.Contains("address1_city"))
+                    if (leadEntity.Attributes.Contains("address1_city"))
                     {
                         city = leadEntity.Attributes["address1_city"].ToString();
                         apiParm += string.Format("{1}City={0}", city, apiParm != "" ? "&" : "");
                     }
                     string state = "";
-                    if(leadEntity.Attributes.Contains("fdx_stateprovince"))
+                    if (leadEntity.Attributes.Contains("fdx_stateprovince"))
                     {
                         state = (service.Retrieve("fdx_state", ((EntityReference)leadEntity.Attributes["fdx_stateprovince"]).Id, new ColumnSet("fdx_statecode"))).Attributes["fdx_statecode"].ToString();
                         apiParm += string.Format("{1}State={0}", state, apiParm != "" ? "&" : "");
@@ -155,7 +152,7 @@ namespace FdxLeadAssignmentPlugin
 
                     //Set created on time based on Leads time zone....
                     step = 1;
-                    Entity zipEntity = new Entity ();
+                    Entity zipEntity = new Entity();
                     if (zip != Guid.Empty)
                     {
                         string zipCode = "";
@@ -177,7 +174,7 @@ namespace FdxLeadAssignmentPlugin
                         }
                     }
 
-                    if(isGroupPractice)
+                    if (isGroupPractice)
                     {
                         step = 2;
                         #region Code commented to Hold DSO logic...
@@ -204,7 +201,7 @@ namespace FdxLeadAssignmentPlugin
                         step = 3;
 
                         #region 1st check --> first name, last name and phone matches an existing Lead....
-                        QueryExpression queryExp = CRMQueryExpression.getQueryExpression("lead", new ColumnSet("leadid", "contactid", "parentcontactid", "accountid", "parentaccountid", "ownerid","owningteam"), new CRMQueryExpression[] { new CRMQueryExpression("firstname", ConditionOperator.Equal, firstName), new CRMQueryExpression("lastname", ConditionOperator.Equal, lastName), new CRMQueryExpression("telephone2", ConditionOperator.Equal, phone) });
+                        QueryExpression queryExp = CRMQueryExpression.getQueryExpression("lead", new ColumnSet("leadid", "contactid", "parentcontactid", "accountid", "parentaccountid", "ownerid", "owningteam"), new CRMQueryExpression[] { new CRMQueryExpression("firstname", ConditionOperator.Equal, firstName), new CRMQueryExpression("lastname", ConditionOperator.Equal, lastName), new CRMQueryExpression("telephone2", ConditionOperator.Equal, phone) });
                         EntityCollection collection = service.RetrieveMultiple(queryExp);
                         if (collection.Entities.Count > 0)
                         {
@@ -236,7 +233,7 @@ namespace FdxLeadAssignmentPlugin
 
                         }
                         #endregion
-                                                   
+
                         #region 2nd check --> first name, last name and phone match an existing contact....
                         if (step == 3)
                         {
@@ -358,7 +355,7 @@ namespace FdxLeadAssignmentPlugin
                             }
                         }
                         #endregion
-                        
+
                         #region 3rd check --> email matches an existing lead....
                         if (step == 3 && leadEntity.Attributes.Contains("emailaddress1"))
                         {
@@ -382,7 +379,7 @@ namespace FdxLeadAssignmentPlugin
                                 if (lead.Attributes.Contains("parentaccountid"))
                                 {
                                     leadEntity["parentaccountid"] = new EntityReference("account", ((EntityReference)lead.Attributes["parentaccountid"]).Id);
-                                    accountid=((EntityReference)lead.Attributes["parentaccountid"]).Id;
+                                    accountid = ((EntityReference)lead.Attributes["parentaccountid"]).Id;
                                 }
 
                                 //Condition added by Ram as Part of SMART593....
@@ -464,7 +461,7 @@ namespace FdxLeadAssignmentPlugin
                                 }
                             }
                         }
-                        #endregion                                                                      
+                        #endregion
 
                         #region 5th check --> company name and zipcode matches an existing account....
                         if (step == 3 && leadEntity.Attributes.Contains("companyname") && zipEntity.Attributes.Contains("fdx_zipcode"))
@@ -509,7 +506,7 @@ namespace FdxLeadAssignmentPlugin
                         #region 6th check --> company name and zipcode matches an existing lead....
                         if (step == 3 && leadEntity.Attributes.Contains("companyname") && zipEntity.Attributes.Contains("fdx_zipcode"))
                         {
-                            queryExp = CRMQueryExpression.getQueryExpression("lead", new ColumnSet("leadid", "contactid", "parentcontactid", "accountid", "parentaccountid", "ownerid","owningteam"), new CRMQueryExpression[] { new CRMQueryExpression("companyname", ConditionOperator.Equal, companyName), new CRMQueryExpression("address1_postalcode", ConditionOperator.Equal, zipEntity.Attributes["fdx_zipcode"].ToString()) });
+                            queryExp = CRMQueryExpression.getQueryExpression("lead", new ColumnSet("leadid", "contactid", "parentcontactid", "accountid", "parentaccountid", "ownerid", "owningteam"), new CRMQueryExpression[] { new CRMQueryExpression("companyname", ConditionOperator.Equal, companyName), new CRMQueryExpression("address1_postalcode", ConditionOperator.Equal, zipEntity.Attributes["fdx_zipcode"].ToString()) });
                             collection = service.RetrieveMultiple(queryExp);
                             if (collection.Entities.Count > 0)
                             {
@@ -541,7 +538,7 @@ namespace FdxLeadAssignmentPlugin
 
                             }
                         }
-                        #endregion                        
+                        #endregion
 
                         #region 7th check --> Assiagn SAE based on zipcode....
                         if (step == 3)
@@ -549,7 +546,7 @@ namespace FdxLeadAssignmentPlugin
                             //Condition added by Ram as Part of SMART593....
                             if ((((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1) || (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 4))
                             {
-                                Entity zipcode = new Entity ();
+                                Entity zipcode = new Entity();
                                 if (zip != Guid.Empty)
                                 {
                                     zipcode = service.Retrieve("fdx_zipcode", zip, new ColumnSet("fdx_territory", "fdx_zipcode"));
@@ -566,7 +563,7 @@ namespace FdxLeadAssignmentPlugin
                                 }
                             }
                         }
-                        #endregion                        
+                        #endregion
                     }
 
                     #region (Code Commented)8th check --> trigger next@bat....
@@ -582,7 +579,7 @@ namespace FdxLeadAssignmentPlugin
                     {
                         leadAssigned = false;
                         if (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1 && !leadEntity.Attributes.Contains("fdx_leadid"))
-                            leadEntity["fdx_snb"] = true;                        
+                            leadEntity["fdx_snb"] = true;
                     }
                     #endregion
 
@@ -634,9 +631,11 @@ namespace FdxLeadAssignmentPlugin
                     #endregion
 
                     #region Set the address field as per the account if there is an existing account....
-                    if(accountid != Guid.Empty)
+                    if (accountid != Guid.Empty)
                     {
-                        QueryExpression accountQuery = CRMQueryExpression.getQueryExpression("account", new ColumnSet("name","fdx_goldmineaccountnumber", "fdx_gonogo","address1_line1","address1_line2","address1_city","fdx_stateprovinceid","fdx_zippostalcodeid","telephone1"), new CRMQueryExpression[] { new CRMQueryExpression("accountid", ConditionOperator.Equal, accountid) });
+                        ColumnSet accountColumns = new ColumnSet("name", "fdx_goldmineaccountnumber", "fdx_gonogo", "address1_line1", "address1_line2", "address1_city", "fdx_stateprovinceid", "fdx_zippostalcodeid", "telephone1");
+                        accountColumns.AddColumns("fdx_prospectgroup", "defaultpricelevelid", "fdx_prospectpriority", "fdx_prospectscore", "fdx_prospectpercentile", "fdx_ratesource", "fdx_pprrate", "fdx_subrate", "fdx_prospectradius");
+                        QueryExpression accountQuery = CRMQueryExpression.getQueryExpression("account", accountColumns, new CRMQueryExpression[] { new CRMQueryExpression("accountid", ConditionOperator.Equal, accountid) });
                         EntityCollection accountCollection = service.RetrieveMultiple(accountQuery);
                         if ((accountCollection.Entities.Count) > 0)
                         {
@@ -646,7 +645,7 @@ namespace FdxLeadAssignmentPlugin
                             if (!account.Attributes.Contains("fdx_goldmineaccountnumber"))
                             {
                                 step = 194;
-                                apiParm = string.Format("Zip={0}&Phone1={1}", (service.Retrieve("fdx_zipcode", ((EntityReference)account.Attributes["fdx_zippostalcodeid"]).Id, new ColumnSet("fdx_zipcode"))).Attributes["fdx_zipcode"].ToString(), Regex.Replace(account.Attributes["telephone1"].ToString(),@"[^0-9]+", ""));
+                                apiParm = string.Format("Zip={0}&Phone1={1}", (service.Retrieve("fdx_zipcode", ((EntityReference)account.Attributes["fdx_zippostalcodeid"]).Id, new ColumnSet("fdx_zipcode"))).Attributes["fdx_zipcode"].ToString(), Regex.Replace(account.Attributes["telephone1"].ToString(), @"[^0-9]+", ""));
 
                                 //apiParm = string.Format("Zip={0}&Phone1={1}", (service.Retrieve("fdx_zipcode", ((EntityReference)account.Attributes["fdx_zippostalcodeid"]).Id, new ColumnSet("fdx_zipcode"))).Attributes["fdx_zipcode"].ToString(), account.Attributes["telephone1"].ToString());
                                 step = 195;
@@ -671,19 +670,21 @@ namespace FdxLeadAssignmentPlugin
 
                                 //1. To point to Dev
                                 //url = "http://SMARTCRMSync.1800dentist.com/api/lead/createlead?" + apiParm;
-                                
+
                                 //2. To point to Stage
                                 url = "http://smartcrmsyncstage.1800dentist.com/api/lead/createlead?" + apiParm;
-                                
+
                                 //3. To point to Production
                                 //url = "http://SMARTCRMSyncProd.1800dentist.com/api/lead/createlead?" + apiParm;
-                                
+
                             }
                             else
                             {
                                 acc_gmaccountno_exist = true;
                                 leadEntity["fdx_goldmineaccountnumber"] = account.Attributes["fdx_goldmineaccountnumber"].ToString();
                                 leadEntity["fdx_gonogo"] = account.Attributes["fdx_gonogo"];
+                                ProspectData prospectData = GetProspectDataFromAccount(account);
+                                CopyLeadProspectDataToSharedVariable(context.SharedVariables, prospectData);
                             }
                         }
                     }
@@ -697,11 +698,12 @@ namespace FdxLeadAssignmentPlugin
 
                         //3. To point to Production
                         //url = "http://SMARTCRMSyncProd.1800dentist.com/api/lead/createlead?" + apiParm;
-                                
+
                     }
                     #endregion
 
                     #region Call and update from API....
+                    tracingService.Trace(url);
                     Lead leadObj = new Lead();
                     if (!acc_gmaccountno_exist)
                     {
@@ -720,8 +722,20 @@ namespace FdxLeadAssignmentPlugin
                             DataContractJsonSerializer serializer =
                                         new DataContractJsonSerializer(typeof(Lead));
 
+
+
                             step = 6;
                             leadObj = (Lead)serializer.ReadObject(getResponse.GetResponseStream());
+
+                            EntityCollection priceLists = GetPriceListByName(leadObj.priceListName, service);
+                            EntityCollection prospectGroups = GetProspectGroupByName(leadObj.prospectGroup, service);
+                            ProspectData prospectData = GetProspectDataFromWebService(leadObj);
+                            prospectData.PriceListName = leadObj.priceListName;
+                            if (priceLists.Entities.Count == 1)
+                                prospectData.PriceListId = priceLists.Entities[0].Id;
+                            if (prospectGroups.Entities.Count == 1)
+                                prospectData.ProspectGroupId = prospectGroups.Entities[0].Id;
+
                             step = 7;
                             leadEntity["fdx_goldmineaccountnumber"] = leadObj.goldMineId;
                             if (leadObj.goNoGo)
@@ -732,11 +746,12 @@ namespace FdxLeadAssignmentPlugin
                             else
                             {
                                 step = 72;
-                                leadEntity["fdx_gonogo"] = new OptionSetValue(756480001);                                
+                                leadEntity["fdx_gonogo"] = new OptionSetValue(756480001);
                             }
 
                             if (accountid != Guid.Empty)
                             {
+                                IOrganizationService impersonatedService = serviceFactory.CreateOrganizationService(null);
                                 step = 73;
                                 Entity acc = new Entity("account")
                                 {
@@ -744,8 +759,13 @@ namespace FdxLeadAssignmentPlugin
                                 };
                                 acc.Attributes["fdx_goldmineaccountnumber"] = leadObj.goldMineId;
                                 acc.Attributes["fdx_gonogo"] = leadObj.goNoGo ? new OptionSetValue(756480000) : new OptionSetValue(756480001);
-                                service.Update(acc);
+                                UpdateProspectDataOnAccount(acc, prospectData);
+                                impersonatedService.Update(acc);
                             }
+
+                            tracingService.Trace(prospectData.PriceListName);
+                            CopyLeadProspectDataToSharedVariable(context.SharedVariables, prospectData);
+                            tracingService.Trace("Prospect Data Updated");
                         }
                     }
                     #endregion
@@ -794,7 +814,7 @@ namespace FdxLeadAssignmentPlugin
 
         private Entity getAccountMatchedLead(Entity _account, IOrganizationService _service)
         {
-            Entity lead = new Entity ();
+            Entity lead = new Entity();
             QueryExpression queryExp = CRMQueryExpression.getQueryExpression("lead", new ColumnSet("leadid", "contactid", "parentcontactid", "accountid", "parentaccountid", "ownerid", "owningteam"), new CRMQueryExpression[] { new CRMQueryExpression("accountid", ConditionOperator.Equal, _account.Id), new CRMQueryExpression("parentaccountid", ConditionOperator.Equal, _account.Id) }, LogicalOperator.Or);
             EntityCollection collection = _service.RetrieveMultiple(queryExp);
 
@@ -802,6 +822,140 @@ namespace FdxLeadAssignmentPlugin
                 lead = collection.Entities[0];
 
             return lead;
+        }
+
+        private ProspectData GetProspectDataFromStub()
+        {
+            ProspectData prospectData = new ProspectData();
+            prospectData.ProspectGroupId = new Guid("9B3945FC-2728-E811-811D-3863BB34CB20");
+            prospectData.PriceListId = new Guid("8A826A97-0B26-E811-811C-3863BB35EF70");
+            prospectData.Priority = Convert.ToDecimal(1);
+            prospectData.Score = Convert.ToDecimal(2);
+            prospectData.Percentile = Convert.ToDecimal(3);
+            prospectData.RateSource = "Stub";
+            prospectData.PPRRate = Convert.ToDecimal(1);
+            prospectData.SubRate = Convert.ToDecimal(2);
+            prospectData.Radius = 2;
+            return prospectData;
+        }
+
+        private ProspectData GetProspectDataFromWebService(Lead lead)
+        {
+            ProspectData prospectData = new ProspectData();
+            prospectData.ProspectGroupName = lead.prospectGroup;
+            prospectData.PriceListName = lead.priceListName;
+            prospectData.Priority = lead.prospectPriority;
+            prospectData.Score = lead.prspectScore;
+            prospectData.Percentile = lead.prospectPercentile;
+            prospectData.RateSource = lead.rateSource;
+            prospectData.PPRRate = lead.pprRate;
+            prospectData.SubRate = lead.subRate;
+            prospectData.Radius = lead.prospectRadius;
+            return prospectData;
+        }
+
+        private ProspectData GetProspectDataFromAccount(Entity account)
+        {
+            ProspectData prospectData = new ProspectData();
+            if (account.Contains("fdx_prospectgroup"))
+                prospectData.ProspectGroupId = ((EntityReference)account["fdx_prospectgroup"]).Id;
+            if (account.Contains("defaultpricelevelid"))
+                prospectData.PriceListId = ((EntityReference)account["defaultpricelevelid"]).Id;
+            if (account.Contains("fdx_prospectpriority"))
+                prospectData.Priority = (decimal)account["fdx_prospectpriority"];
+            if (account.Contains("fdx_prospectscore"))
+                prospectData.Score = (decimal)account["fdx_prospectscore"];
+            if (account.Contains("fdx_prospectpercentile"))
+                prospectData.Percentile = (decimal)account["fdx_prospectpercentile"];
+            if (account.Contains("fdx_ratesource"))
+                prospectData.RateSource = (string)account["fdx_ratesource"];
+            if (account.Contains("fdx_pprrate"))
+                prospectData.PPRRate = ((Money)account["fdx_pprrate"]).Value;
+            if (account.Contains("fdx_subrate"))
+                prospectData.SubRate = ((Money)account["fdx_subrate"]).Value;
+            if (account.Contains("fdx_prospectradius"))
+                prospectData.Radius = (int)account["fdx_prospectradius"];
+            return prospectData;
+        }
+
+        private string GetProspectDataString(ProspectData prospectData)
+        {
+            string traceString = "ProspectGroupName="+prospectData.ProspectGroupName.ToString() + Environment.NewLine;
+            traceString += "PriceListName=" + prospectData.PriceListName + Environment.NewLine;
+            traceString += "Priority=" + prospectData.Priority.ToString() + Environment.NewLine;
+            traceString += "Score=" + prospectData.Score.ToString() + Environment.NewLine;
+            traceString += "Percentile=" + prospectData.Percentile.ToString() + Environment.NewLine;
+            traceString += "RateSource=" + prospectData.RateSource.ToString() + Environment.NewLine;
+            traceString += "PPRRate=" + prospectData.PPRRate.ToString() + Environment.NewLine;
+            traceString += "SubRate=" + prospectData.SubRate.ToString() + Environment.NewLine;
+            traceString += "Radius=" + prospectData.Radius.ToString() + Environment.NewLine;
+            return traceString;
+        }
+
+        private void CopyLeadProspectDataToSharedVariable(ParameterCollection contextSharedVariable, ProspectData prospectData)
+        {
+            contextSharedVariable.Add("ProspectData", true);
+            if (prospectData.ProspectGroupId.HasValue && !prospectData.ProspectGroupId.Equals(Guid.Empty))
+                contextSharedVariable.Add("fdx_prospectgroup", prospectData.ProspectGroupId.Value);
+            if (prospectData.PriceListId.HasValue && !prospectData.PriceListId.Equals(Guid.Empty))
+                contextSharedVariable.Add("fdx_pricelist", prospectData.PriceListId.Value);
+            if (prospectData.Priority.HasValue)
+                contextSharedVariable.Add("fdx_prospectpriority", prospectData.Priority);
+            if (prospectData.Score.HasValue)
+                contextSharedVariable.Add("fdx_prospectscore", prospectData.Score);
+            if (prospectData.Percentile.HasValue)
+                contextSharedVariable.Add("fdx_prospectpercentile", prospectData.Percentile);
+            if (!string.IsNullOrEmpty(prospectData.RateSource))
+                contextSharedVariable.Add("fdx_ratesource", prospectData.RateSource);
+            if (prospectData.PPRRate.HasValue)
+                contextSharedVariable.Add("fdx_pprrate", prospectData.PPRRate);
+            if (prospectData.SubRate.HasValue)
+                contextSharedVariable.Add("fdx_subrate", prospectData.SubRate);
+            if (prospectData.Radius.HasValue)
+                contextSharedVariable.Add("fdx_prospectradius", prospectData.Radius);
+            if (!string.IsNullOrEmpty(prospectData.PriceListName))
+                contextSharedVariable.Add("fdx_prospectpricelistname", prospectData.PriceListName);
+        }
+
+        private void UpdateProspectDataOnAccount(Entity accountRecord, ProspectData prospectData)
+        {
+            if (prospectData.ProspectGroupId.HasValue && !prospectData.ProspectGroupId.Equals(Guid.Empty))
+                accountRecord["fdx_prospectgroup"] = new EntityReference("fdx_prospectgroup", prospectData.ProspectGroupId.Value);
+            if (prospectData.PriceListId.HasValue && !prospectData.PriceListId.Equals(Guid.Empty))
+                accountRecord["defaultpricelevelid"] = new EntityReference("pricelevel", prospectData.PriceListId.Value);
+            if (!string.IsNullOrEmpty(prospectData.PriceListName))
+                accountRecord["fdx_pricelistname"] = prospectData.PriceListName;
+            if (prospectData.Priority.HasValue)
+                accountRecord["fdx_prospectpriority"] = prospectData.Priority;
+            if (prospectData.Score.HasValue)
+                accountRecord["fdx_prospectscore"] = prospectData.Score;
+            if (prospectData.Percentile.HasValue)
+                accountRecord["fdx_prospectpercentile"] = prospectData.Percentile;
+            if (!string.IsNullOrEmpty(prospectData.RateSource))
+                accountRecord["fdx_ratesource"] = prospectData.RateSource;
+            if (prospectData.PPRRate.HasValue)
+                accountRecord["fdx_pprrate"] = new Money(prospectData.PPRRate.Value);
+            if (prospectData.SubRate.HasValue)
+                accountRecord["fdx_subrate"] = new Money(prospectData.SubRate.Value);
+            if (prospectData.Radius.HasValue)
+                accountRecord["fdx_prospectradius"] = prospectData.Radius;
+            accountRecord["fdx_prospectdatalastupdated"] = DateTime.UtcNow;
+        }
+
+        private EntityCollection GetPriceListByName(string priceListName, IOrganizationService crmService)
+        {
+            QueryByAttribute queryByPriceList = new QueryByAttribute("pricelevel");
+            queryByPriceList.ColumnSet = new ColumnSet("pricelevelid");
+            queryByPriceList.AddAttributeValue("name", priceListName);
+            return crmService.RetrieveMultiple(queryByPriceList);
+        }
+
+        private EntityCollection GetProspectGroupByName(string prospectGroupName, IOrganizationService crmService)
+        {
+            QueryByAttribute queryByProspectGroup = new QueryByAttribute("fdx_prospectgroup");
+            queryByProspectGroup.ColumnSet = new ColumnSet("fdx_prospectgroupid");
+            queryByProspectGroup.AddAttributeValue("fdx_name", prospectGroupName);
+            return crmService.RetrieveMultiple(queryByProspectGroup);
         }
     }
 }
