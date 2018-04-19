@@ -765,6 +765,7 @@ namespace FdxLeadAssignmentPlugin
 
                             tracingService.Trace(prospectData.PriceListName);
                             CopyLeadProspectDataToSharedVariable(context.SharedVariables, prospectData);
+                            tracingService.Trace(GetProspectDataString(prospectData));
                             tracingService.Trace("Prospect Data Updated");
                         }
                     }
@@ -860,7 +861,11 @@ namespace FdxLeadAssignmentPlugin
             if (account.Contains("fdx_prospectgroup"))
                 prospectData.ProspectGroupId = ((EntityReference)account["fdx_prospectgroup"]).Id;
             if (account.Contains("defaultpricelevelid"))
-                prospectData.PriceListId = ((EntityReference)account["defaultpricelevelid"]).Id;
+            {
+                EntityReference priceList = (EntityReference)account["defaultpricelevelid"];
+                prospectData.PriceListId = priceList.Id;
+                prospectData.PriceListName = priceList.Name;
+            }
             if (account.Contains("fdx_prospectpriority"))
                 prospectData.Priority = (decimal)account["fdx_prospectpriority"];
             if (account.Contains("fdx_prospectscore"))
@@ -880,15 +885,15 @@ namespace FdxLeadAssignmentPlugin
 
         private string GetProspectDataString(ProspectData prospectData)
         {
-            string traceString = "ProspectGroupName="+prospectData.ProspectGroupName.ToString() + Environment.NewLine;
+            string traceString = "ProspectGroupName="+prospectData.ProspectGroupName + Environment.NewLine;
             traceString += "PriceListName=" + prospectData.PriceListName + Environment.NewLine;
-            traceString += "Priority=" + prospectData.Priority.ToString() + Environment.NewLine;
-            traceString += "Score=" + prospectData.Score.ToString() + Environment.NewLine;
-            traceString += "Percentile=" + prospectData.Percentile.ToString() + Environment.NewLine;
-            traceString += "RateSource=" + prospectData.RateSource.ToString() + Environment.NewLine;
-            traceString += "PPRRate=" + prospectData.PPRRate.ToString() + Environment.NewLine;
-            traceString += "SubRate=" + prospectData.SubRate.ToString() + Environment.NewLine;
-            traceString += "Radius=" + prospectData.Radius.ToString() + Environment.NewLine;
+            traceString += "Priority=" + Convert.ToString(prospectData.Priority) + Environment.NewLine;
+            traceString += "Score=" + Convert.ToString(prospectData.Score) + Environment.NewLine;
+            traceString += "Percentile=" + Convert.ToString(prospectData.Percentile) + Environment.NewLine;
+            traceString += "RateSource=" + prospectData.RateSource + Environment.NewLine;
+            traceString += "PPRRate=" + Convert.ToString(prospectData.PPRRate) + Environment.NewLine;
+            traceString += "SubRate=" + Convert.ToString(prospectData.SubRate) + Environment.NewLine;
+            traceString += "Radius=" + Convert.ToString(prospectData.Radius) + Environment.NewLine;
             return traceString;
         }
 
