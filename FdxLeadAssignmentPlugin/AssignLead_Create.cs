@@ -672,10 +672,10 @@ namespace FdxLeadAssignmentPlugin
                                 //url = "http://SMARTCRMSync.1800dentist.com/api/lead/createlead?" + apiParm;
 
                                 //2. To point to Stage
-                                url = "http://smartcrmsyncstage.1800dentist.com/api/lead/createlead?" + apiParm;
+                                //url = "http://smartcrmsyncstage.1800dentist.com/api/lead/createlead?" + apiParm;
 
                                 //3. To point to Production
-                                //url = "http://SMARTCRMSyncProd.1800dentist.com/api/lead/createlead?" + apiParm;
+                                url = "http://SMARTCRMSyncProd.1800dentist.com/api/lead/createlead?" + apiParm;
 
                             }
                             else
@@ -694,10 +694,10 @@ namespace FdxLeadAssignmentPlugin
                         //url = "http://SMARTCRMSync.1800dentist.com/api/lead/createlead?" + apiParm;
 
                         //2. To point to Stage
-                        url = "http://smartcrmsyncstage.1800dentist.com/api/lead/createlead?" + apiParm;
+                        //url = "http://smartcrmsyncstage.1800dentist.com/api/lead/createlead?" + apiParm;
 
                         //3. To point to Production
-                        //url = "http://SMARTCRMSyncProd.1800dentist.com/api/lead/createlead?" + apiParm;
+                        url = "http://SMARTCRMSyncProd.1800dentist.com/api/lead/createlead?" + apiParm;
 
                     }
                     #endregion
