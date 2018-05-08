@@ -48,8 +48,8 @@ namespace FdxLeadAssignmentPlugin
                 prospectData.SubRate = (decimal)contextSharedVariable["fdx_subrate"];
             if (contextSharedVariable.ContainsKey("fdx_prospectradius"))
                 prospectData.Radius = (int)contextSharedVariable["fdx_prospectradius"];
-            if (contextSharedVariable.ContainsKey("fdx_prospectpricelistname"))
-                prospectData.PriceListName = (string)contextSharedVariable["fdx_prospectpricelistname"];
+            if (contextSharedVariable.ContainsKey("fdx_prospectdatalastupdated"))
+                prospectData.LastUpdated = (DateTime)contextSharedVariable["fdx_prospectdatalastupdated"];
             return prospectData;
         }
 
@@ -73,9 +73,14 @@ namespace FdxLeadAssignmentPlugin
                 leadRecord["fdx_subrate"] = new Money(prospectData.SubRate.Value);
             if (prospectData.Radius.HasValue)
                 leadRecord["fdx_prospectradius"] = prospectData.Radius;
-            if (!string.IsNullOrEmpty(prospectData.PriceListName))
-                leadRecord["fdx_prospectpricelistname"] = prospectData.PriceListName;
-            leadRecord["fdx_prospectdatalastupdated"] = DateTime.UtcNow;
+            if (prospectData.LastUpdated.HasValue)
+            {
+                leadRecord["fdx_prospectdatalastupdated"] = prospectData.LastUpdated.Value;
+            }
+            else
+            {
+                leadRecord["fdx_prospectdatalastupdated"] = DateTime.UtcNow;
+            }
         }
     }
 }

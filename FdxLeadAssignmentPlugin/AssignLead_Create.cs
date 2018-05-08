@@ -18,6 +18,11 @@ namespace FdxLeadAssignmentPlugin
     {
         public void Execute(IServiceProvider serviceProvider)
         {
+            string DEV_ENVIRONMENT_URL = "http://SMARTCRMSync.1800dentist.com/api";
+            string STAGE_ENVIRONMENT_URL = "http://SMARTCRMSyncStage.1800dentist.com/api";
+            string PROD_ENVIRONMENT_URL = "http://SMARTCRMSync.1800dentist.com/api";
+            string smartCrmSyncWebServiceUrl = STAGE_ENVIRONMENT_URL;
+
             //Extract the tracing service for use in debugging sandboxed plug-ins....
             ITracingService tracingService =
                 (ITracingService)serviceProvider.GetService(typeof(ITracingService));
@@ -634,7 +639,7 @@ namespace FdxLeadAssignmentPlugin
                     if (accountid != Guid.Empty)
                     {
                         ColumnSet accountColumns = new ColumnSet("name", "fdx_goldmineaccountnumber", "fdx_gonogo", "address1_line1", "address1_line2", "address1_city", "fdx_stateprovinceid", "fdx_zippostalcodeid", "telephone1");
-                        accountColumns.AddColumns("fdx_prospectgroup", "defaultpricelevelid", "fdx_prospectpriority", "fdx_prospectscore", "fdx_prospectpercentile", "fdx_ratesource", "fdx_pprrate", "fdx_subrate", "fdx_prospectradius");
+                         accountColumns.AddColumns("fdx_prospectgroup", "defaultpricelevelid", "fdx_prospectpriority", "fdx_prospectscore", "fdx_prospectpercentile", "fdx_ratesource", "fdx_pprrate", "fdx_subrate", "fdx_prospectradius", "fdx_prospectdatalastupdated");
                         QueryExpression accountQuery = CRMQueryExpression.getQueryExpression("account", accountColumns, new CRMQueryExpression[] { new CRMQueryExpression("accountid", ConditionOperator.Equal, accountid) });
                         EntityCollection accountCollection = service.RetrieveMultiple(accountQuery);
                         if ((accountCollection.Entities.Count) > 0)
@@ -668,15 +673,7 @@ namespace FdxLeadAssignmentPlugin
                                 if (account.Attributes.Contains("fdx_stateprovinceid"))
                                     apiParm += string.Format("{1}State={0}", (service.Retrieve("fdx_state", ((EntityReference)account.Attributes["fdx_stateprovinceid"]).Id, new ColumnSet("fdx_statecode"))).Attributes["fdx_statecode"].ToString(), apiParm != "" ? "&" : "");
 
-                                //1. To point to Dev
-                                //url = "http://SMARTCRMSync.1800dentist.com/api/lead/createlead?" + apiParm;
-
-                                //2. To point to Stage
-                                //url = "http://smartcrmsyncstage.1800dentist.com/api/lead/createlead?" + apiParm;
-
-                                //3. To point to Production
-                                url = "http://SMARTCRMSyncProd.1800dentist.com/api/lead/createlead?" + apiParm;
-
+                                url = smartCrmSyncWebServiceUrl + "/lead/createlead?" + apiParm;
                             }
                             else
                             {
@@ -690,15 +687,7 @@ namespace FdxLeadAssignmentPlugin
                     }
                     else
                     {
-                        //1. To point to Dev
-                        //url = "http://SMARTCRMSync.1800dentist.com/api/lead/createlead?" + apiParm;
-
-                        //2. To point to Stage
-                        //url = "http://smartcrmsyncstage.1800dentist.com/api/lead/createlead?" + apiParm;
-
-                        //3. To point to Production
-                        url = "http://SMARTCRMSyncProd.1800dentist.com/api/lead/createlead?" + apiParm;
-
+                        url = smartCrmSyncWebServiceUrl + "/lead/createlead?" + apiParm;
                     }
                     #endregion
 
@@ -763,7 +752,6 @@ namespace FdxLeadAssignmentPlugin
                                 impersonatedService.Update(acc);
                             }
 
-                            tracingService.Trace(prospectData.PriceListName);
                             CopyLeadProspectDataToSharedVariable(context.SharedVariables, prospectData);
                             tracingService.Trace(GetProspectDataString(prospectData));
                             tracingService.Trace("Prospect Data Updated");
@@ -864,7 +852,6 @@ namespace FdxLeadAssignmentPlugin
             {
                 EntityReference priceList = (EntityReference)account["defaultpricelevelid"];
                 prospectData.PriceListId = priceList.Id;
-                prospectData.PriceListName = priceList.Name;
             }
             if (account.Contains("fdx_prospectpriority"))
                 prospectData.Priority = (decimal)account["fdx_prospectpriority"];
@@ -880,6 +867,8 @@ namespace FdxLeadAssignmentPlugin
                 prospectData.SubRate = ((Money)account["fdx_subrate"]).Value;
             if (account.Contains("fdx_prospectradius"))
                 prospectData.Radius = (int)account["fdx_prospectradius"];
+            if (account.Contains("fdx_prospectdatalastupdated"))
+                prospectData.LastUpdated = (DateTime)account["fdx_prospectdatalastupdated"];
             return prospectData;
         }
 
@@ -918,8 +907,8 @@ namespace FdxLeadAssignmentPlugin
                 contextSharedVariable.Add("fdx_subrate", prospectData.SubRate);
             if (prospectData.Radius.HasValue)
                 contextSharedVariable.Add("fdx_prospectradius", prospectData.Radius);
-            if (!string.IsNullOrEmpty(prospectData.PriceListName))
-                contextSharedVariable.Add("fdx_prospectpricelistname", prospectData.PriceListName);
+            if (prospectData.LastUpdated.HasValue)
+                contextSharedVariable.Add("fdx_prospectdatalastupdated", prospectData.LastUpdated.Value);
         }
 
         private void UpdateProspectDataOnAccount(Entity accountRecord, ProspectData prospectData)
@@ -928,8 +917,6 @@ namespace FdxLeadAssignmentPlugin
                 accountRecord["fdx_prospectgroup"] = new EntityReference("fdx_prospectgroup", prospectData.ProspectGroupId.Value);
             if (prospectData.PriceListId.HasValue && !prospectData.PriceListId.Equals(Guid.Empty))
                 accountRecord["defaultpricelevelid"] = new EntityReference("pricelevel", prospectData.PriceListId.Value);
-            if (!string.IsNullOrEmpty(prospectData.PriceListName))
-                accountRecord["fdx_pricelistname"] = prospectData.PriceListName;
             if (prospectData.Priority.HasValue)
                 accountRecord["fdx_prospectpriority"] = prospectData.Priority;
             if (prospectData.Score.HasValue)

@@ -29,5 +29,7 @@ namespace FdxLeadAssignmentPlugin
         public decimal? SubRate { get; set; }
 
         public int? Radius { get; set; }
+
+        public DateTime? LastUpdated { get; set; }
     }
 }
