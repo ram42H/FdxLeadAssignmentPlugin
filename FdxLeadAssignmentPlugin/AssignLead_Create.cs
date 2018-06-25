@@ -21,7 +21,7 @@ namespace FdxLeadAssignmentPlugin
             string DEV_ENVIRONMENT_URL = "http://SMARTCRMSync.1800dentist.com/api";
             string STAGE_ENVIRONMENT_URL = "http://SMARTCRMSyncStage.1800dentist.com/api";
             string PROD_ENVIRONMENT_URL = "http://SMARTCRMSyncProd.1800dentist.com/api";
-            string smartCrmSyncWebServiceUrl = STAGE_ENVIRONMENT_URL;
+            string smartCrmSyncWebServiceUrl = DEV_ENVIRONMENT_URL;
 
             //Extract the tracing service for use in debugging sandboxed plug-ins....
             ITracingService tracingService =
@@ -234,6 +234,7 @@ namespace FdxLeadAssignmentPlugin
                                     leadEntity["ownerid"] = new EntityReference(lead["owningteam"] != null ? "team" : "systemuser", ((EntityReference)lead.Attributes["ownerid"]).Id);
                                 else
                                     leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)lead.Attributes["ownerid"]).Id);
+                                tracingService.Trace("first name, last name and phone matches an existing Lead");
                             }
 
                         }
@@ -259,6 +260,8 @@ namespace FdxLeadAssignmentPlugin
                                         leadEntity["ownerid"] = new EntityReference(contact["owningteam"] != null ? "team" : "systemuser", ((EntityReference)contact.Attributes["ownerid"]).Id);
                                     else
                                         leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)contact.Attributes["ownerid"]).Id);
+
+                                    tracingService.Trace("first name, last name and phone match an existing contact");
                                 }
 
                                 //Check if the account exist for the contact....
@@ -300,6 +303,8 @@ namespace FdxLeadAssignmentPlugin
                                         leadEntity["ownerid"] = new EntityReference(lead["owningteam"] != null ? "team" : "systemuser", ((EntityReference)lead.Attributes["ownerid"]).Id);
                                     else
                                         leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)lead.Attributes["ownerid"]).Id);
+
+                                    tracingService.Trace("Office phone number maches an existing lead");
                                 }
 
                             }
@@ -356,7 +361,18 @@ namespace FdxLeadAssignmentPlugin
                                 }
 
                                 accountid = account.Id;
-
+                                //Code added as part of S893 by Meghana on Lead create for Incoming Phone call,web creation/import
+                                //wf name - fdx_Lead update Existing Account
+                                tracingService.Trace("OnDemand workflow started");
+                                string wfid = "8622B036-D051-489A-9C0F-B168554B1938";
+                                ExecuteWorkflowRequest request = new ExecuteWorkflowRequest
+                                {
+                                    EntityId = matchedLead.Id,
+                                    WorkflowId = new Guid(wfid)
+                                };
+                                tracingService.Trace("OnDemand workflow in loop");
+                                service.Execute(request);
+                                tracingService.Trace("OnDemand workflow req executed");
                             }
                         }
                         #endregion
@@ -394,6 +410,8 @@ namespace FdxLeadAssignmentPlugin
                                         leadEntity["ownerid"] = new EntityReference(lead["owningteam"] != null ? "team" : "systemuser", ((EntityReference)lead.Attributes["ownerid"]).Id);
                                     else
                                         leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)lead.Attributes["ownerid"]).Id);
+
+                                    tracingService.Trace("email matches an existing lead");
                                 }
                             }
                         }
@@ -423,6 +441,8 @@ namespace FdxLeadAssignmentPlugin
                                         leadEntity["ownerid"] = new EntityReference(account["owningteam"] != null ? "team" : "systemuser", ((EntityReference)account.Attributes["ownerid"]).Id);
                                     else
                                         leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)account.Attributes["ownerid"]).Id);
+
+                                    tracingService.Trace("email matches an existing account");
                                 }
 
                                 accountid = account.Id;
@@ -452,6 +472,8 @@ namespace FdxLeadAssignmentPlugin
                                         leadEntity["ownerid"] = new EntityReference(contact["owningteam"] != null ? "team" : "systemuser", ((EntityReference)contact.Attributes["ownerid"]).Id);
                                     else
                                         leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)contact.Attributes["ownerid"]).Id);
+
+                                    tracingService.Trace("email matches an existing contact");
                                 }
 
                                 //Check if the account exist for the contact....
@@ -494,6 +516,8 @@ namespace FdxLeadAssignmentPlugin
                                         leadEntity["ownerid"] = new EntityReference(account["owningteam"] != null ? "team" : "systemuser", ((EntityReference)account.Attributes["ownerid"]).Id);
                                     else
                                         leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)account.Attributes["ownerid"]).Id);
+
+                                    tracingService.Trace("company name and zipcode matches an existing account");
                                 }
 
                                 accountid = account.Id;
@@ -539,6 +563,8 @@ namespace FdxLeadAssignmentPlugin
                                         leadEntity["ownerid"] = new EntityReference(lead["owningteam"] != null ? "team" : "systemuser", ((EntityReference)lead.Attributes["ownerid"]).Id);
                                     else
                                         leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)lead.Attributes["ownerid"]).Id);
+
+                                    tracingService.Trace("company name and zipcode matches an existing lead");
                                 }
 
                             }
@@ -564,6 +590,8 @@ namespace FdxLeadAssignmentPlugin
                                             territory = service.Retrieve("territory", ((EntityReference)zipcode.Attributes["fdx_territory"]).Id, new ColumnSet("managerid"));
                                         if (territory.Attributes.Contains("managerid"))
                                             leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)territory.Attributes["managerid"]).Id);
+
+                                        tracingService.Trace("Assign SAE based on zipcode");
                                     }
                                 }
                             }
@@ -585,6 +613,8 @@ namespace FdxLeadAssignmentPlugin
                         leadAssigned = false;
                         if (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1 && !leadEntity.Attributes.Contains("fdx_leadid"))
                             leadEntity["fdx_snb"] = true;
+
+                        tracingService.Trace("Set lead Assigned to False and trigger next@bat only for Web Leads (new leads only and not cloned)");
                     }
                     #endregion
 
@@ -754,7 +784,7 @@ namespace FdxLeadAssignmentPlugin
 
                             CopyLeadProspectDataToSharedVariable(context.SharedVariables, prospectData);
                             tracingService.Trace(GetProspectDataString(prospectData));
-                            tracingService.Trace("Prospect Data Updated");
+                            tracingService.Trace("Prospect Data Updated in AssignLead_Create");
                         }
                     }
                     #endregion
@@ -772,6 +802,8 @@ namespace FdxLeadAssignmentPlugin
                             Entity team = teamCollection.Entities[0];
                             leadEntity["ownerid"] = new EntityReference("team", team.Id);
                         }
+
+                        tracingService.Trace("Condition to assign Lead to Lead Review Team");
                     }
                     #endregion
 
@@ -785,6 +817,8 @@ namespace FdxLeadAssignmentPlugin
                             leadEntity["ownerid"] = new EntityReference(OriginatingLead["owningteam"] != null ? "team" : "systemuser", ((EntityReference)OriginatingLead.Attributes["ownerid"]).Id);
                         else
                             leadEntity["ownerid"] = new EntityReference("systemuser", ((EntityReference)OriginatingLead.Attributes["ownerid"]).Id);
+
+                        tracingService.Trace("Condition if Cloned Lead: override owner of cloned lead = originating lead's owner");
                     }
                     #endregion
 
