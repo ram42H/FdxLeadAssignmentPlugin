@@ -213,7 +213,7 @@ namespace FdxLeadAssignmentPlugin
                             //Code added as part of S893 by Meghana on Lead create for Incoming Phone call,web creation/import
                             //wf name - fdx_Lead update Existing Account
                             step = 44;
-                            this.updateExistingAccount(matchedLead.Id);
+                            //this.updateExistingAccount(matchedLead.Id);
                         }
                         else if ((entityCollection = CRMQueryExpression.GetLeadEntityCollection(variables, service, 14)).Entities.Count > 0)
                         {
