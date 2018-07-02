@@ -20,6 +20,7 @@ namespace FdxLeadAssignmentPlugin
         public bool isGroupPractice;
         public string zipcodetext;
         public Guid zip;
+        public Guid zipTerritory;
         public string firstName;
         public string lastName;
         public string phone;
@@ -41,6 +42,7 @@ namespace FdxLeadAssignmentPlugin
             acc_gmaccountno_exist = false;
             accountid = Guid.Empty;
             zip = Guid.Empty;
+            zipTerritory = Guid.Empty;
 
             isGroupPractice = _leadEntity.Attributes.Contains("fdx_grppracactice") ? _leadEntity.GetAttributeValue<bool>("fdx_grppracactice") : false;
 
@@ -48,7 +50,7 @@ namespace FdxLeadAssignmentPlugin
             {
                 zip = ((EntityReference)_leadEntity.Attributes["fdx_zippostalcode"]).Id;
                 Entity zipEntity = new Entity();
-                zipEntity = _service.Retrieve("fdx_zipcode", zip, new ColumnSet("fdx_zipcode", "fdx_timezone"));
+                zipEntity = _service.Retrieve("fdx_zipcode", zip, new ColumnSet("fdx_zipcode", "fdx_timezone", "fdx_territory"));
                 zipcodetext = zipEntity.Attributes.Contains("fdx_zipcode") ? zipEntity.Attributes["fdx_zipcode"].ToString() : "";
                 int timeZoneCode = Convert.ToInt32(zipEntity["fdx_timezone"]);
                 QueryExpression tzDefinationQuery = CRMQueryExpression.getQueryExpression("timezonedefinition", new ColumnSet("standardname"), new CRMQueryExpression[] { new CRMQueryExpression("timezonecode", ConditionOperator.Equal, timeZoneCode) });
@@ -57,6 +59,11 @@ namespace FdxLeadAssignmentPlugin
                 DateTime timeUtc = DateTime.UtcNow;
                 TimeZoneInfo tzInfo = TimeZoneInfo.FindSystemTimeZoneById(tzDefination.Attributes["standardname"].ToString());
                 tzTime = TimeZoneInfo.ConvertTimeFromUtc(timeUtc, tzInfo);
+
+                if(zipEntity.Contains("fdx_territory"))
+                {
+                    zipTerritory = ((EntityReference)zipEntity.Attributes["fdx_territory"]).Id;
+                }
             }
             
             firstName = _leadEntity.Attributes.Contains("firstname") ? _leadEntity.Attributes["firstname"].ToString() : "";

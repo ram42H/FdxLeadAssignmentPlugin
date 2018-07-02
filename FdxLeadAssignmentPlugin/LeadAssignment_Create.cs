@@ -61,164 +61,243 @@ namespace FdxLeadAssignmentPlugin
                         EntityCollection entityCollection = new EntityCollection ();
                         if ((entityCollection = CRMQueryExpression.GetLeadEntityCollection(variables, service, 1)).Entities.Count > 0)
                         {
-                            this.setConnectedLead(entityCollection.Entities[0]);
-                            this.setExistingContact(entityCollection.Entities[0], "lead");
-                            this.setExistingAccount(entityCollection.Entities[0], "lead");
-                            this.setLeadOwner(entityCollection.Entities[0]);
                             tracingService.Trace("First name, last name and office phone on new lead matches First name, last name and office phone on existing lead");
+                            step = 1;
+                            this.setConnectedLead(entityCollection.Entities[0]);
+                            step = 2;
+                            this.setExistingContact(entityCollection.Entities[0], "lead");
+                            step = 3;
+                            this.setExistingAccount(entityCollection.Entities[0], "lead");
+                            step = 4;
+                            this.setLeadOwner(entityCollection.Entities[0]);
+                            
                         }
                         else if ((entityCollection = CRMQueryExpression.GetLeadEntityCollection(variables, service, 2)).Entities.Count > 0)
                         {
+                            tracingService.Trace("First name, last name and office phone on new lead matches First name, last name and office phone on existing contact");
+                            step = 5;
                             this.setExistingContact(entityCollection.Entities[0], "contact");
+                            step = 6;
                             this.setExistingAccount(entityCollection.Entities[0], "contact");
+                            step = 7;
                             this.setLeadOwner(entityCollection.Entities[0]);
-                            tracingService.Trace("First name, last name and office phone on new CR matches First name, last name and office phone on existing contact");
+                            
                         }
                         else if ((entityCollection = CRMQueryExpression.GetLeadEntityCollection(variables, service, 3)).Entities.Count > 0)
                         {
-                            this.setConnectedLead(entityCollection.Entities[0]);
-                            this.setExistingAccount(entityCollection.Entities[0], "lead");
-                            this.setLeadOwner(entityCollection.Entities[0]);
                             tracingService.Trace("Office Phone on new lead matches office phone on existing lead");
+                            step = 8;
+                            this.setConnectedLead(entityCollection.Entities[0]);
+                            step = 9;
+                            this.setExistingAccount(entityCollection.Entities[0], "lead");
+                            step = 10;
+                            this.setLeadOwner(entityCollection.Entities[0]);                            
                         }
                         else if ((entityCollection = CRMQueryExpression.GetLeadEntityCollection(variables, service, 4)).Entities.Count > 0)
                         {
-                            this.setConnectedLead(entityCollection.Entities[0]);
-                            this.setExistingAccount(entityCollection.Entities[0], "lead");
-                            this.setLeadOwner(entityCollection.Entities[0]);
                             tracingService.Trace("Email on new lead matches email on existing lead");
+                            step = 11;
+                            this.setConnectedLead(entityCollection.Entities[0]);
+                            step = 12;
+                            this.setExistingAccount(entityCollection.Entities[0], "lead");
+                            step = 13;
+                            this.setLeadOwner(entityCollection.Entities[0]);                            
                         }
                         else if ((entityCollection = CRMQueryExpression.GetLeadEntityCollection(variables, service, 5)).Entities.Count > 0)
                         {
+                            tracingService.Trace("Company name and zipcode on new lead matches company name and zipcode on an account");
+                            step = 14;
                             Entity matchedLead = new Entity();
                             matchedLead = this.getAccountMatchedLead(entityCollection.Entities[0]);
-                            if(matchedLead.Id != Guid.Empty)
+                            step = 15;
+                            if (matchedLead.Id != Guid.Empty)
+                            {
+                                step = 16;
                                 this.setConnectedLead(matchedLead);
+                            }
+
+                            step = 17;
                             this.setExistingAccount(entityCollection.Entities[0], "account");
-                            this.setLeadOwner(entityCollection.Entities[0]);
-                            tracingService.Trace("Company name and zipcode on new lead matches company name and zipcode on an account");
+                            step = 18;
+                            this.setLeadOwner(entityCollection.Entities[0]);                            
                         }
                         else if ((entityCollection = CRMQueryExpression.GetLeadEntityCollection(variables, service, 6)).Entities.Count > 0)
                         {
-                            this.setConnectedLead(entityCollection.Entities[0]);
-                            this.setExistingAccount(entityCollection.Entities[0], "lead");
-                            this.setLeadOwner(entityCollection.Entities[0]);
                             tracingService.Trace("Company name and zipcode on new lead matches company name and zipcode on a lead");
+                            step = 19;
+                            this.setConnectedLead(entityCollection.Entities[0]);
+                            step = 20;
+                            this.setExistingAccount(entityCollection.Entities[0], "lead");
+                            step = 21;
+                            this.setLeadOwner(entityCollection.Entities[0]);
                         }
                         else if ((entityCollection = CRMQueryExpression.GetLeadEntityCollection(variables, service, 7)).Entities.Count > 0)
                         {
-                            Entity matchedLead = new Entity();
-                            matchedLead = this.getAccountMatchedLead(entityCollection.Entities[0]);
-                            if (matchedLead.Id != Guid.Empty)
-                                this.setConnectedLead(matchedLead);
-                            this.setExistingAccount(entityCollection.Entities[0], "account");
-                            this.setLeadOwner(entityCollection.Entities[0]);
                             tracingService.Trace("Email on new lead matches email on account");
+                            Entity matchedLead = new Entity();
+                            step = 22;
+                            matchedLead = this.getAccountMatchedLead(entityCollection.Entities[0]);
+                            step = 23;
+                            if (matchedLead.Id != Guid.Empty)
+                            {
+                                step = 24;
+                                this.setConnectedLead(matchedLead);
+                            }
+                            this.setExistingAccount(entityCollection.Entities[0], "account");
+                            step = 25;
+                            this.setLeadOwner(entityCollection.Entities[0]);                            
                         }
                         else if ((entityCollection = CRMQueryExpression.GetLeadEntityCollection(variables, service, 8)).Entities.Count > 0)
                         {
-                            this.setExistingAccount(entityCollection.Entities[0], "contact");
-                            this.setLeadOwner(entityCollection.Entities[0]);
                             tracingService.Trace("Email on new lead matches email on existing contact");
+                            step = 26;
+                            this.setExistingAccount(entityCollection.Entities[0], "contact");
+                            step = 27;
+                            this.setLeadOwner(entityCollection.Entities[0]);                            
                         }
                         else if ((entityCollection = CRMQueryExpression.GetLeadEntityCollection(variables, service, 9)).Entities.Count > 0)
                         {
-                            this.setExistingAccount(entityCollection.Entities[0], "contact");
-                            this.setLeadOwner(entityCollection.Entities[0]);
                             tracingService.Trace("Lastname and phone on new lead matches lastname and any phone on contact");
+                            step = 28;
+                            this.setExistingAccount(entityCollection.Entities[0], "contact");
+                            step = 29;
+                            this.setLeadOwner(entityCollection.Entities[0]);                            
                         }
                         else if ((entityCollection = CRMQueryExpression.GetLeadEntityCollection(variables, service, 10)).Entities.Count > 0)
                         {
-                            this.setConnectedLead(entityCollection.Entities[0]);
-                            this.setExistingAccount(entityCollection.Entities[0], "lead");
-                            this.setLeadOwner(entityCollection.Entities[0]);
                             tracingService.Trace("Lastname and phone on new lead matches lastname and any phone on lead");
+                            step = 30;
+                            this.setConnectedLead(entityCollection.Entities[0]);
+                            step = 31;
+                            this.setExistingAccount(entityCollection.Entities[0], "lead");
+                            step = 32;
+                            this.setLeadOwner(entityCollection.Entities[0]);                            
                         }
                         else if ((entityCollection = CRMQueryExpression.GetLeadEntityCollection(variables, service, 11)).Entities.Count > 0)
                         {
-                            this.setConnectedLead(entityCollection.Entities[0]);
-                            this.setExistingAccount(entityCollection.Entities[0], "lead");
-                            this.setLeadOwner(entityCollection.Entities[0]);
                             tracingService.Trace("Office Phone on new lead matches any phone on a lead");
+                            step = 33;
+                            this.setConnectedLead(entityCollection.Entities[0]);
+                            step = 34;
+                            this.setExistingAccount(entityCollection.Entities[0], "lead");
+                            step = 35;
+                            this.setLeadOwner(entityCollection.Entities[0]);                            
                         }
                         else if ((entityCollection = CRMQueryExpression.GetLeadEntityCollection(variables, service, 12)).Entities.Count > 0)
                         {
-                            this.setConnectedLead(entityCollection.Entities[0]);
-                            this.setExistingAccount(entityCollection.Entities[0], "lead");
-                            this.setLeadOwner(entityCollection.Entities[0]);
                             tracingService.Trace("Mobile Phone on new lead matches any phone on a lead");
+                            step = 36;
+                            this.setConnectedLead(entityCollection.Entities[0]);
+                            step = 37;
+                            this.setExistingAccount(entityCollection.Entities[0], "lead");
+                            step = 38;
+                            this.setLeadOwner(entityCollection.Entities[0]);                            
                         }
                         else if ((entityCollection = CRMQueryExpression.GetLeadEntityCollection(variables, service, 13)).Entities.Count > 0)
                         {
-                            Entity matchedLead = new Entity();
-                            matchedLead = this.getAccountMatchedLead(entityCollection.Entities[0]);
-                            if (matchedLead.Id != Guid.Empty)
-                                this.setConnectedLead(matchedLead);
-                            this.setExistingAccount(entityCollection.Entities[0], "account");
-                            this.setLeadOwner(entityCollection.Entities[0]);
                             tracingService.Trace("Office Phone on new lead matches any phone on account");
+                            Entity matchedLead = new Entity();
+                            step = 39;
+                            matchedLead = this.getAccountMatchedLead(entityCollection.Entities[0]);
+                            step = 40;
+                            if (matchedLead.Id != Guid.Empty)
+                            {
+                                step = 41;
+                                this.setConnectedLead(matchedLead);
+                            }
+                            step = 42;
+                            this.setExistingAccount(entityCollection.Entities[0], "account");
+                            step = 43;
+                            this.setLeadOwner(entityCollection.Entities[0]);                            
 
                             //Code added as part of S893 by Meghana on Lead create for Incoming Phone call,web creation/import
                             //wf name - fdx_Lead update Existing Account
+                            step = 44;
                             this.updateExistingAccount(matchedLead.Id);
                         }
                         else if ((entityCollection = CRMQueryExpression.GetLeadEntityCollection(variables, service, 14)).Entities.Count > 0)
                         {
-                            Entity matchedLead = new Entity();
-                            matchedLead = this.getAccountMatchedLead(entityCollection.Entities[0]);
-                            if (matchedLead.Id != Guid.Empty)
-                                this.setConnectedLead(matchedLead);
-                            this.setExistingAccount(entityCollection.Entities[0], "account");
-                            this.setLeadOwner(entityCollection.Entities[0]);
                             tracingService.Trace("Mobile Phone on new lead matches any phone on account");
+                            Entity matchedLead = new Entity();
+                            step = 45;
+                            matchedLead = this.getAccountMatchedLead(entityCollection.Entities[0]);
+                            step = 46;
+                            if (matchedLead.Id != Guid.Empty)
+                            {
+                                step = 47;
+                                this.setConnectedLead(matchedLead);
+                            }
+                            step = 48;
+                            this.setExistingAccount(entityCollection.Entities[0], "account");
+                            step = 49;
+                            this.setLeadOwner(entityCollection.Entities[0]);
                         }
                         else if ((entityCollection = CRMQueryExpression.GetLeadEntityCollection(variables, service, 15)).Entities.Count > 0)
                         {
-                            this.setExistingAccount(entityCollection.Entities[0], "contact");
-                            this.setLeadOwner(entityCollection.Entities[0]);
                             tracingService.Trace("Office Phone on new lead matches any phone on contact");
+                            step = 50;
+                            this.setExistingAccount(entityCollection.Entities[0], "contact");
+                            step = 51;
+                            this.setLeadOwner(entityCollection.Entities[0]);
                         }
                         else if ((entityCollection = CRMQueryExpression.GetLeadEntityCollection(variables, service, 16)).Entities.Count > 0)
                         {
-                            this.setExistingAccount(entityCollection.Entities[0], "contact");
-                            this.setLeadOwner(entityCollection.Entities[0]);
                             tracingService.Trace("Mobile Phone on new lead matches any phone on contact");
+                            step = 52;
+                            this.setExistingAccount(entityCollection.Entities[0], "contact");
+                            step = 53;
+                            this.setLeadOwner(entityCollection.Entities[0]);
                         }
-                        else if(((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1 || ((OptionSetValue)leadEntity["leadsourcecode"]).Value == 4)
+                        else if (((entityCollection = CRMQueryExpression.GetLeadEntityCollection(variables, service, 17)).Entities.Count > 0) && ((((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1) || (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 4)))
                         {
+                            tracingService.Trace("Assiagn SAE based on zipcode");
+                            step = 54;
+                            Entity user = entityCollection.Entities[0];
+                            step = 55;
+                            leadEntity["ownerid"] = new EntityReference("systemuser", user.Id);
+                        }
+                        else if (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1 || ((OptionSetValue)leadEntity["leadsourcecode"]).Value == 4)
+                        {
+                            tracingService.Trace("Set lead Assigned to False and trigger next@bat only for Web Leads (new leads only and not cloned)");
                             variables.leadAssigned = false;
+                            step = 56;
                             if (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1 && !leadEntity.Attributes.Contains("fdx_leadid"))
                                 leadEntity["fdx_snb"] = true;
-
-                            tracingService.Trace("Set lead Assigned to False and trigger next@bat only for Web Leads (new leads only and not cloned)");
                         }
                     }
 
                     #region Set the address field as per the account if there is an existing account....
                     if (variables.accountid != Guid.Empty)
                     {
+                        step = 57;
                         EntityCollection accountCollection = this.getExisitingAccountDetails(variables.accountid);
                         if (accountCollection.Entities.Count > 0)
                         {
                             Entity account = new Entity();
                             account = accountCollection.Entities[0];
+                            step = 58;
                             if (!account.Attributes.Contains("fdx_goldmineaccountnumber"))
                             {
+                                step = 59;
                                 apiParm = this.setApiParmFromAccountEntity(account);
                                 url = variables.smartCrmSyncWebServiceUrl + "/lead/createlead?" + apiParm;
                             }
                             else
                             {
+                                step = 60;
                                 variables.acc_gmaccountno_exist = true;
                                 leadEntity["fdx_goldmineaccountnumber"] = account.Attributes["fdx_goldmineaccountnumber"].ToString();
                                 leadEntity["fdx_gonogo"] = account.Attributes["fdx_gonogo"];
+                                step = 61;
                                 ProspectData prospectData = this.GetProspectDataFromAccount(account);
+                                step = 62;
                                 this.CopyLeadProspectDataToSharedVariable(context.SharedVariables, prospectData);
                             }
                         }
                     }
                     else
                     {
+                        step = 63;
                         url = variables.smartCrmSyncWebServiceUrl + "/lead/createlead?" + apiParm;
                     }
                     #endregion
@@ -228,30 +307,42 @@ namespace FdxLeadAssignmentPlugin
                     Lead leadObj = new Lead();
                     if (!variables.acc_gmaccountno_exist)
                     {
+                        step = 64;
                         const string token = "8b6asd7-0775-4278-9bcb-c0d48f800112";
                         var uri = new Uri(url);
+                        step = 65;
                         var request = WebRequest.Create(uri);
                         request.Method = WebRequestMethods.Http.Post;
                         request.ContentType = "application/json";
                         request.ContentLength = 0;
                         request.Headers.Add("Authorization", token);
 
+                        step = 66;
                         using (var getResponse = request.GetResponse())
                         {
+                            step = 67;
                             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Lead));
 
+                            step = 68;
                             leadObj = (Lead)serializer.ReadObject(getResponse.GetResponseStream());
 
+                            step = 69;
                             EntityCollection priceLists = this.GetPriceListByName(leadObj.priceListName, service);
+                            step = 70;
                             EntityCollection prospectGroups = this.GetProspectGroupByName(leadObj.prospectGroup, service);
+                            step = 71;
                             ProspectData prospectData = this.GetProspectDataFromWebService(leadObj);
                             prospectData.PriceListName = leadObj.priceListName;
 
+                            step = 72;
                             if (priceLists.Entities.Count == 1)
                                 prospectData.PriceListId = priceLists.Entities[0].Id;
+
+                            step = 73;
                             if (prospectGroups.Entities.Count == 1)
                                 prospectData.ProspectGroupId = prospectGroups.Entities[0].Id;
 
+                            step = 74;
                             leadEntity["fdx_goldmineaccountnumber"] = leadObj.goldMineId;
                             if (leadObj.goNoGo)
                             {
@@ -262,20 +353,29 @@ namespace FdxLeadAssignmentPlugin
                                 leadEntity["fdx_gonogo"] = new OptionSetValue(756480001);
                             }
 
+                            step = 75;
                             if (variables.accountid != Guid.Empty)
                             {
+                                step = 76;
                                 IOrganizationService impersonatedService = serviceFactory.CreateOrganizationService(null);
+
+                                step = 77;
                                 Entity acc = new Entity("account")
                                 {
                                     Id = variables.accountid
                                 };
                                 acc.Attributes["fdx_goldmineaccountnumber"] = leadObj.goldMineId;
                                 acc.Attributes["fdx_gonogo"] = leadObj.goNoGo ? new OptionSetValue(756480000) : new OptionSetValue(756480001);
+
+                                step = 78;
                                 this.UpdateProspectDataOnAccount(acc, prospectData);
+                                step = 79;
                                 impersonatedService.Update(acc);
                             }
 
+                            step = 80;
                             this.CopyLeadProspectDataToSharedVariable(context.SharedVariables, prospectData);
+                            step = 81;
                             tracingService.Trace(GetProspectDataString(prospectData));
                             tracingService.Trace("Prospect Data Updated in AssignLead_Create");
                         }
@@ -285,10 +385,14 @@ namespace FdxLeadAssignmentPlugin
                     #region Condition to assign Lead to Lead Review Team....
                     if (!variables.leadAssigned && !leadObj.goNoGo && ((((OptionSetValue)leadEntity["leadsourcecode"]).Value == 1) || (((OptionSetValue)leadEntity["leadsourcecode"]).Value == 4)))
                     {
+                        step = 82;
                         leadEntity["fdx_snb"] = false;
                         QueryExpression teamQuery = CRMQueryExpression.getQueryExpression("team", new ColumnSet("name"), new CRMQueryExpression[] { new CRMQueryExpression("name", ConditionOperator.Equal, "Lead Review Team") });
+
+                        step = 83;
                         EntityCollection teamCollection = service.RetrieveMultiple(teamQuery);
-                        
+
+                        step = 84;
                         if (teamCollection.Entities.Count > 0)
                         {
                             Entity team = teamCollection.Entities[0];
@@ -303,8 +407,10 @@ namespace FdxLeadAssignmentPlugin
 
                     if (leadEntity.Attributes.Contains("fdx_leadid"))
                     {
+                        step = 85;
                         Entity OriginatingLead = service.Retrieve("lead", ((EntityReference)leadEntity.Attributes["fdx_leadid"]).Id, new ColumnSet("ownerid", "owningteam"));
 
+                        step = 86;
                         if (OriginatingLead.Attributes.Contains("owningteam"))
                             leadEntity["ownerid"] = new EntityReference(OriginatingLead["owningteam"] != null ? "team" : "systemuser", ((EntityReference)OriginatingLead.Attributes["ownerid"]).Id);
                         else

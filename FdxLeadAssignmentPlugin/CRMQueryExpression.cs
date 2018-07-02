@@ -131,7 +131,7 @@ namespace FdxLeadAssignmentPlugin
                     queryExp = CRMQueryExpression.getQueryExpression("lead", new ColumnSet("leadid", "contactid", "parentcontactid", "accountid", "parentaccountid", "ownerid", "owningteam"), new CRMQueryExpression[] { new CRMQueryExpression("firstname", ConditionOperator.Equal, _variables.firstName), new CRMQueryExpression("lastname", ConditionOperator.Equal, _variables.lastName), new CRMQueryExpression("telephone2", ConditionOperator.Equal, _variables.phone) });
                     entities = _service.RetrieveMultiple(queryExp);
                     break;
-                case 2: //First name, last name and office phone on new CR matches First name, last name and office phone on existing contact
+                case 2: //First name, last name and office phone on new lead matches First name, last name and office phone on existing contact
                     queryExp = CRMQueryExpression.getQueryExpression("contact", new ColumnSet("parentcustomerid", "fullname", "ownerid", "owningteam"), new CRMQueryExpression[] { new CRMQueryExpression("firstname", ConditionOperator.Equal, _variables.firstName), new CRMQueryExpression("lastname", ConditionOperator.Equal, _variables.lastName), new CRMQueryExpression("telephone2", ConditionOperator.Equal, _variables.phone) });
                     entities = _service.RetrieveMultiple(queryExp);
                     break;
@@ -213,6 +213,20 @@ namespace FdxLeadAssignmentPlugin
                     {
                         queryExp = CRMQueryExpression.getQueryExpression("contact", new ColumnSet("parentcustomerid", "fullname", "ownerid", "owningteam"), new CRMQueryExpression[] { new CRMQueryExpression("telephone2", ConditionOperator.Equal, _variables.telephone1), new CRMQueryExpression("telephone1", ConditionOperator.Equal, _variables.telephone1), new CRMQueryExpression("telephone3", ConditionOperator.Equal, _variables.telephone1) }, LogicalOperator.Or);
                         entities = _service.RetrieveMultiple(queryExp);
+                    }
+                    break;
+                case 17: //Assiagn SAE based on zipcode
+                    if (_variables.zipTerritory != Guid.Empty)
+                    {
+                        Entity territory = new Entity();
+                        territory = _service.Retrieve("territory", _variables.zipTerritory, new ColumnSet("managerid"));
+
+                        if (territory.Attributes.Contains("managerid"))
+                        {
+                            queryExp = CRMQueryExpression.getQueryExpression("systemuser", new ColumnSet(true), new CRMQueryExpression[] { new CRMQueryExpression("systemuserid", ConditionOperator.Equal, ((EntityReference)territory.Attributes["managerid"]).Id) });
+
+                            entities = _service.RetrieveMultiple(queryExp);
+                        }
                     }
                     break;
             }
