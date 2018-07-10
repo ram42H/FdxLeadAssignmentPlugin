@@ -442,7 +442,7 @@ namespace FdxLeadAssignmentPlugin
         private EntityCollection getExisitingAccountDetails(Guid _accountId)
         {
             ColumnSet accountColumns = new ColumnSet("name", "fdx_goldmineaccountnumber", "fdx_gonogo", "address1_line1", "address1_line2", "address1_city", "fdx_stateprovinceid", "fdx_zippostalcodeid", "telephone1");
-            accountColumns.AddColumns("fdx_prospectgroup", "defaultpricelevelid", "fdx_prospectpriority", "fdx_prospectscore", "fdx_prospectpercentile", "fdx_ratesource", "fdx_pprrate", "fdx_subrate", "fdx_prospectradius", "fdx_prospectdatalastupdated");
+            accountColumns.AddColumns("fdx_prospectgroup", "defaultpricelevelid", "fdx_prospectpriority", "fdx_prospectscore", "fdx_prospectpercentile", "fdx_ratesource", "fdx_pprrate", "fdx_subrate", "fdx_prospectradius", "fdx_prospectdatalastupdated","fdx_prospectscoreblankmessage");
             QueryExpression accountQuery = CRMQueryExpression.getQueryExpression("account", accountColumns, new CRMQueryExpression[] { new CRMQueryExpression("accountid", ConditionOperator.Equal, _accountId) });
             EntityCollection accountCollection = service.RetrieveMultiple(accountQuery);
 
@@ -657,6 +657,7 @@ namespace FdxLeadAssignmentPlugin
             prospectData.PPRRate = lead.pprRate;
             prospectData.SubRate = lead.subRate;
             prospectData.Radius = lead.prospectRadius;
+            prospectData.ProspectScoreBlankMessage = lead.prospectscoreblankmessage;
             return prospectData;
         }
 
@@ -686,6 +687,8 @@ namespace FdxLeadAssignmentPlugin
                 prospectData.Radius = (int)account["fdx_prospectradius"];
             if (account.Contains("fdx_prospectdatalastupdated"))
                 prospectData.LastUpdated = (DateTime)account["fdx_prospectdatalastupdated"];
+            if (account.Contains("fdx_prospectscoreblankmessage"))
+                prospectData.ProspectScoreBlankMessage = (string)account["fdx_prospectscoreblankmessage"];
             return prospectData;
         }
 
@@ -700,6 +703,7 @@ namespace FdxLeadAssignmentPlugin
             traceString += "PPRRate=" + Convert.ToString(prospectData.PPRRate) + Environment.NewLine;
             traceString += "SubRate=" + Convert.ToString(prospectData.SubRate) + Environment.NewLine;
             traceString += "Radius=" + Convert.ToString(prospectData.Radius) + Environment.NewLine;
+            traceString += "ProspectScoreBlankMessage=" + Convert.ToString(prospectData.ProspectScoreBlankMessage) + Environment.NewLine;
             return traceString;
         }
 
@@ -726,6 +730,9 @@ namespace FdxLeadAssignmentPlugin
                 contextSharedVariable.Add("fdx_prospectradius", prospectData.Radius);
             if (prospectData.LastUpdated.HasValue)
                 contextSharedVariable.Add("fdx_prospectdatalastupdated", prospectData.LastUpdated.Value);
+            if (!string.IsNullOrEmpty(prospectData.ProspectScoreBlankMessage))
+                contextSharedVariable.Add("fdx_prospectscoreblankmessage", prospectData.ProspectScoreBlankMessage);
+
         }
 
         private void UpdateProspectDataOnAccount(Entity accountRecord, ProspectData prospectData)
@@ -749,6 +756,8 @@ namespace FdxLeadAssignmentPlugin
             if (prospectData.Radius.HasValue)
                 accountRecord["fdx_prospectradius"] = prospectData.Radius;
             accountRecord["fdx_prospectdatalastupdated"] = DateTime.UtcNow;
+            if (!string.IsNullOrEmpty(prospectData.ProspectScoreBlankMessage))
+                accountRecord["fdx_prospectscoreblankmessage"] = prospectData.ProspectScoreBlankMessage;
         }
 
         private EntityCollection GetPriceListByName(string priceListName, IOrganizationService crmService)

@@ -50,6 +50,8 @@ namespace FdxLeadAssignmentPlugin
                 prospectData.Radius = (int)contextSharedVariable["fdx_prospectradius"];
             if (contextSharedVariable.ContainsKey("fdx_prospectdatalastupdated"))
                 prospectData.LastUpdated = (DateTime)contextSharedVariable["fdx_prospectdatalastupdated"];
+            if (contextSharedVariable.ContainsKey("fdx_prospectscoreblankmessage"))
+                prospectData.ProspectScoreBlankMessage = (string)contextSharedVariable["fdx_prospectscoreblankmessage"];
             return prospectData;
         }
 
@@ -81,6 +83,8 @@ namespace FdxLeadAssignmentPlugin
             {
                 leadRecord["fdx_prospectdatalastupdated"] = DateTime.UtcNow;
             }
+            if (!string.IsNullOrEmpty(prospectData.ProspectScoreBlankMessage))
+                leadRecord["fdx_prospectscoreblankmessage"] = prospectData.ProspectScoreBlankMessage;
         }
     }
 }
