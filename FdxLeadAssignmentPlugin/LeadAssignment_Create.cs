@@ -26,14 +26,17 @@ namespace FdxLeadAssignmentPlugin
             string apiParm = "";
 
             //Extract the tracing service for use in debugging sandboxed plug-ins....
+            step = 87;
             tracingService =
                 (ITracingService)serviceProvider.GetService(typeof(ITracingService));
 
             //Obtain execution contest from the service provider....
+            step = 88;
             IPluginExecutionContext context = (IPluginExecutionContext)serviceProvider.GetService(typeof(IPluginExecutionContext));
 
             if (context.InputParameters.Contains("Target") && context.InputParameters["Target"] is Entity)
             {
+                step = 89;
                 leadEntity = (Entity)context.InputParameters["Target"];
 
                 if (leadEntity.LogicalName != "lead")
@@ -41,18 +44,22 @@ namespace FdxLeadAssignmentPlugin
 
                 try
                 {
+                    step = 90;
                     IOrganizationServiceFactory serviceFactory = (IOrganizationServiceFactory)serviceProvider.GetService(typeof(IOrganizationServiceFactory));
                     service = serviceFactory.CreateOrganizationService(context.UserId);
 
                     //Format phone numbers to remove special characters....
+                    step = 91;
                     this.formatPhoneNumbers();
 
                     //Initialize lead variables....
+                    step = 92;
                     variables = new LeadAssignment_Variables(leadEntity, service);
 
                     leadEntity["fdx_createdontime"] = variables.tzTime.Hour;
 
                     //Set api parameters....
+                    step = 93;
                     apiParm = this.setApiParmFromLeadEntity();
 
                     //Set Connected lead, existing contact, existinng account and Lead owner based on criteria....
@@ -291,7 +298,7 @@ namespace FdxLeadAssignmentPlugin
                                 step = 61;
                                 ProspectData prospectData = this.GetProspectDataFromAccount(account);
                                 step = 62;
-                                this.CopyLeadProspectDataToSharedVariable(context.SharedVariables, prospectData);
+                                CopyLeadProspectDataToSharedVariable(context.SharedVariables, prospectData);
                             }
                         }
                     }
@@ -374,7 +381,7 @@ namespace FdxLeadAssignmentPlugin
                             }
 
                             step = 80;
-                            this.CopyLeadProspectDataToSharedVariable(context.SharedVariables, prospectData);
+                            CopyLeadProspectDataToSharedVariable(context.SharedVariables, prospectData);
                             step = 81;
                             tracingService.Trace(GetProspectDataString(prospectData));
                             tracingService.Trace("Prospect Data Updated in AssignLead_Create");

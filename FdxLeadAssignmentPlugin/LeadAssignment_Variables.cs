@@ -52,13 +52,17 @@ namespace FdxLeadAssignmentPlugin
                 Entity zipEntity = new Entity();
                 zipEntity = _service.Retrieve("fdx_zipcode", zip, new ColumnSet("fdx_zipcode", "fdx_timezone", "fdx_territory"));
                 zipcodetext = zipEntity.Attributes.Contains("fdx_zipcode") ? zipEntity.Attributes["fdx_zipcode"].ToString() : "";
-                int timeZoneCode = Convert.ToInt32(zipEntity["fdx_timezone"]);
-                QueryExpression tzDefinationQuery = CRMQueryExpression.getQueryExpression("timezonedefinition", new ColumnSet("standardname"), new CRMQueryExpression[] { new CRMQueryExpression("timezonecode", ConditionOperator.Equal, timeZoneCode) });
 
-                Entity tzDefination = _service.RetrieveMultiple(tzDefinationQuery).Entities[0];
-                DateTime timeUtc = DateTime.UtcNow;
-                TimeZoneInfo tzInfo = TimeZoneInfo.FindSystemTimeZoneById(tzDefination.Attributes["standardname"].ToString());
-                tzTime = TimeZoneInfo.ConvertTimeFromUtc(timeUtc, tzInfo);
+                if (zipEntity.Contains("fdx_timezone"))
+                {
+                    int timeZoneCode = Convert.ToInt32(zipEntity["fdx_timezone"]);
+                    QueryExpression tzDefinationQuery = CRMQueryExpression.getQueryExpression("timezonedefinition", new ColumnSet("standardname"), new CRMQueryExpression[] { new CRMQueryExpression("timezonecode", ConditionOperator.Equal, timeZoneCode) });
+
+                    Entity tzDefination = _service.RetrieveMultiple(tzDefinationQuery).Entities[0];
+                    DateTime timeUtc = DateTime.UtcNow;
+                    TimeZoneInfo tzInfo = TimeZoneInfo.FindSystemTimeZoneById(tzDefination.Attributes["standardname"].ToString());
+                    tzTime = TimeZoneInfo.ConvertTimeFromUtc(timeUtc, tzInfo);
+                }
 
                 if(zipEntity.Contains("fdx_territory"))
                 {
