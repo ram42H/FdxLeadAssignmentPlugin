@@ -37,7 +37,7 @@ namespace FdxLeadAssignmentPlugin
 
         public LeadAssignment_Variables(Entity _leadEntity, IOrganizationService _service)
         {
-            smartCrmSyncWebServiceUrl = STAGE_ENVIRONMENT_URL;
+            smartCrmSyncWebServiceUrl = PROD_ENVIRONMENT_URL;
             leadAssigned = true;
             acc_gmaccountno_exist = false;
             accountid = Guid.Empty;
@@ -60,9 +60,12 @@ namespace FdxLeadAssignmentPlugin
 
                     Entity tzDefination = _service.RetrieveMultiple(tzDefinationQuery).Entities[0];
                     DateTime timeUtc = DateTime.UtcNow;
-                    TimeZoneInfo tzInfo = TimeZoneInfo.FindSystemTimeZoneById(tzDefination.Attributes["standardname"].ToString());
-                    tzTime = TimeZoneInfo.ConvertTimeFromUtc(timeUtc, tzInfo);
-                   
+
+                    if (tzDefination.Attributes.Contains("standardname"))
+                    {
+                        TimeZoneInfo tzInfo = TimeZoneInfo.FindSystemTimeZoneById(tzDefination.Attributes["standardname"].ToString());
+                        tzTime = TimeZoneInfo.ConvertTimeFromUtc(timeUtc, tzInfo);
+                    }
                 }
 
                 if(zipEntity.Contains("fdx_territory"))
