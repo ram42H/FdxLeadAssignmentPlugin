@@ -62,6 +62,7 @@ namespace FdxLeadAssignmentPlugin
                     DateTime timeUtc = DateTime.UtcNow;
                     TimeZoneInfo tzInfo = TimeZoneInfo.FindSystemTimeZoneById(tzDefination.Attributes["standardname"].ToString());
                     tzTime = TimeZoneInfo.ConvertTimeFromUtc(timeUtc, tzInfo);
+                   
                 }
 
                 if(zipEntity.Contains("fdx_territory"))

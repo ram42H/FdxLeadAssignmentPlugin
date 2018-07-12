@@ -21,6 +21,7 @@ namespace FdxLeadAssignmentPlugin
                 tracingService.Trace("Lead Id" + leadId.ToString());
                 Entity leadRecord = new Entity("lead", leadId);
                 ProspectData prospectData = GetProspectDataFromContext(context.ParentContext.SharedVariables);
+                tracingService.Trace("ProspectscoreBlankMessage :" + prospectData.ProspectScoreBlankMessage);
                 UpdateProspectDataOnLead(leadRecord, prospectData);
                 IOrganizationService impersonatedService = serviceFactory.CreateOrganizationService(null);
                 impersonatedService.Update(leadRecord);

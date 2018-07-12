@@ -332,7 +332,7 @@ namespace FdxLeadAssignmentPlugin
 
                             step = 68;
                             leadObj = (Lead)serializer.ReadObject(getResponse.GetResponseStream());
-
+                            tracingService.Trace("ProspectScoreBlankMessage :" + leadObj.prospectscoreblankmessage);
                             step = 69;
                             EntityCollection priceLists = this.GetPriceListByName(leadObj.priceListName, service);
                             step = 70;
@@ -340,6 +340,8 @@ namespace FdxLeadAssignmentPlugin
                             step = 71;
                             ProspectData prospectData = this.GetProspectDataFromWebService(leadObj);
                             prospectData.PriceListName = leadObj.priceListName;
+                            prospectData.ProspectScoreBlankMessage = leadObj.prospectscoreblankmessage;
+                            leadEntity["fdx_prospectscoreblankmessage"] = leadObj.prospectscoreblankmessage;
 
                             step = 72;
                             if (priceLists.Entities.Count == 1)
@@ -375,6 +377,7 @@ namespace FdxLeadAssignmentPlugin
                                 acc.Attributes["fdx_gonogo"] = leadObj.goNoGo ? new OptionSetValue(756480000) : new OptionSetValue(756480001);
 
                                 step = 78;
+                                
                                 this.UpdateProspectDataOnAccount(acc, prospectData);
                                 step = 79;
                                 impersonatedService.Update(acc);
