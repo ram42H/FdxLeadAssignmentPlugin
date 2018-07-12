@@ -332,7 +332,7 @@ namespace FdxLeadAssignmentPlugin
 
                             step = 68;
                             leadObj = (Lead)serializer.ReadObject(getResponse.GetResponseStream());
-                            tracingService.Trace("ProspectScoreBlankMessage :" + leadObj.prospectscoreblankmessage);
+                            tracingService.Trace("ProspectScoreBlankMessage :" + leadObj.prospectScoreBlankMessage);
                             step = 69;
                             EntityCollection priceLists = this.GetPriceListByName(leadObj.priceListName, service);
                             step = 70;
@@ -340,8 +340,8 @@ namespace FdxLeadAssignmentPlugin
                             step = 71;
                             ProspectData prospectData = this.GetProspectDataFromWebService(leadObj);
                             prospectData.PriceListName = leadObj.priceListName;
-                            prospectData.ProspectScoreBlankMessage = leadObj.prospectscoreblankmessage;
-                            leadEntity["fdx_prospectscoreblankmessage"] = leadObj.prospectscoreblankmessage;
+                            prospectData.ProspectScoreBlankMessage = leadObj.prospectScoreBlankMessage;
+                            leadEntity["fdx_prospectscoreblankmessage"] = leadObj.prospectScoreBlankMessage;
 
                             step = 72;
                             if (priceLists.Entities.Count == 1)
@@ -660,7 +660,7 @@ namespace FdxLeadAssignmentPlugin
             prospectData.PPRRate = lead.pprRate;
             prospectData.SubRate = lead.subRate;
             prospectData.Radius = lead.prospectRadius;
-            prospectData.ProspectScoreBlankMessage = lead.prospectscoreblankmessage;
+            prospectData.ProspectScoreBlankMessage = lead.prospectScoreBlankMessage;
             return prospectData;
         }
 

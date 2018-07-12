@@ -47,6 +47,6 @@ namespace FdxLeadAssignmentPlugin
         public string priceListName { get; set; }
 
         [DataMember]
-        public string prospectscoreblankmessage { get; set; }
+        public string prospectScoreBlankMessage { get; set; }
     }
 }
