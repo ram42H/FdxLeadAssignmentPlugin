@@ -340,6 +340,15 @@ namespace FdxLeadAssignmentPlugin
                             step = 71;
                             ProspectData prospectData = this.GetProspectDataFromWebService(leadObj);
                             prospectData.PriceListName = leadObj.priceListName;
+                            int lengthoferror = leadObj.prospectScoreBlankMessage.Length;
+
+                            tracingService.Trace("lengthoferror-" + lengthoferror);
+                            //if(lengthoferror >= 1500)
+                            //{
+                            //    string trimerror = leadObj.prospectScoreBlankMessage.Substring(0, 1400);
+                            //    leadObj.prospectScoreBlankMessage = leadObj.prospectScoreBlankMessage.Substring(0, 1499);
+                            //    tracingService.Trace("trimerrormessage :" + trimerror);
+                            //}
                             prospectData.ProspectScoreBlankMessage = leadObj.prospectScoreBlankMessage;
                             leadEntity["fdx_prospectscoreblankmessage"] = leadObj.prospectScoreBlankMessage;
 
