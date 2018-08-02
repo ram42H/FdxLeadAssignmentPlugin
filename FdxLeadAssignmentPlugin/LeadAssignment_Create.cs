@@ -349,8 +349,6 @@ namespace FdxLeadAssignmentPlugin
                             //    leadObj.prospectScoreBlankMessage = leadObj.prospectScoreBlankMessage.Substring(0, 1499);
                             //    tracingService.Trace("trimerrormessage :" + trimerror);
                             //}
-                            prospectData.ProspectScoreBlankMessage = leadObj.prospectScoreBlankMessage;
-                            leadEntity["fdx_prospectscoreblankmessage"] = leadObj.prospectScoreBlankMessage;
 
                             step = 72;
                             if (priceLists.Entities.Count == 1)
@@ -669,7 +667,14 @@ namespace FdxLeadAssignmentPlugin
             prospectData.PPRRate = lead.pprRate;
             prospectData.SubRate = lead.subRate;
             prospectData.Radius = lead.prospectRadius;
-            prospectData.ProspectScoreBlankMessage = lead.prospectScoreBlankMessage;
+            if (!string.IsNullOrEmpty(lead.prospectScoreBlankMessage))
+            {
+                prospectData.ProspectScoreBlankMessage = lead.prospectScoreBlankMessage;
+            }
+            else
+            {
+                prospectData.ProspectScoreBlankMessage = "Valid Address";
+            }
             return prospectData;
         }
 
