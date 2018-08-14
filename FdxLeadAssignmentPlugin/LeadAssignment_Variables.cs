@@ -37,7 +37,7 @@ namespace FdxLeadAssignmentPlugin
 
         public LeadAssignment_Variables(Entity _leadEntity, IOrganizationService _service)
         {
-            smartCrmSyncWebServiceUrl = STAGE_ENVIRONMENT_URL;
+            smartCrmSyncWebServiceUrl = DEV_ENVIRONMENT_URL;
             leadAssigned = true;
             acc_gmaccountno_exist = false;
             accountid = Guid.Empty;

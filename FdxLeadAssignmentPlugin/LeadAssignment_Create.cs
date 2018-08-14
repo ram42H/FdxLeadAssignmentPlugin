@@ -333,11 +333,17 @@ namespace FdxLeadAssignmentPlugin
                             step = 68;
                             leadObj = (Lead)serializer.ReadObject(getResponse.GetResponseStream());
                             tracingService.Trace("ProspectScoreBlankMessage :" + leadObj.prospectScoreBlankMessage);
+                            if (string.IsNullOrEmpty(leadObj.prospectScoreBlankMessage))
+                            {
+                                 leadObj.prospectScoreBlankMessage = "Valid Address";
+                            }
+                           
                             step = 69;
                             EntityCollection priceLists = this.GetPriceListByName(leadObj.priceListName, service);
                             step = 70;
                             EntityCollection prospectGroups = this.GetProspectGroupByName(leadObj.prospectGroup, service);
                             step = 71;
+
                             ProspectData prospectData = this.GetProspectDataFromWebService(leadObj);
                             prospectData.PriceListName = leadObj.priceListName;
                             int lengthoferror = leadObj.prospectScoreBlankMessage.Length;
@@ -667,14 +673,7 @@ namespace FdxLeadAssignmentPlugin
             prospectData.PPRRate = lead.pprRate;
             prospectData.SubRate = lead.subRate;
             prospectData.Radius = lead.prospectRadius;
-            if (!string.IsNullOrEmpty(lead.prospectScoreBlankMessage))
-            {
-                prospectData.ProspectScoreBlankMessage = lead.prospectScoreBlankMessage;
-            }
-            else
-            {
-                prospectData.ProspectScoreBlankMessage = "Valid Address";
-            }
+            prospectData.ProspectScoreBlankMessage = lead.prospectScoreBlankMessage;
             return prospectData;
         }
 
